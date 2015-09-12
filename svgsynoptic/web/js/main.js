@@ -2,6 +2,10 @@ var synoptic;
 
 window.addEventListener("load", function () {
 
+    /* Note: "Backend" is our connection to the outside; it
+       may be a Qt widget or an ajax bridge; from here it all
+       works the same as the API should be identical. */
+    
     function main (svg) {
 
         var container = document.getElementById("view");
@@ -11,26 +15,25 @@ window.addEventListener("load", function () {
         synoptic.addEventCallback(
             "click", function (data) {
                 if (R.has("section", data))
-                    Widget.left_click("section", data.section);
+                    Backend.left_click("section", data.section);
                 if (R.has("model", data))
-                    Widget.left_click("model", data.model);
+                    Backend.left_click("model", data.model);
             });
         synoptic.addEventCallback(
             "contextmenu", function (data) {
-                // FIXME
-                Widget.right_click(data.type, data.name);
-                console.log("rightclick " + data.type + " " + data.name);
+                if (R.has("model", data))
+                    Backend.right_click("model", data.model);
             });
 
         synoptic.addEventCallback(
             "tooltip", function (models) {
-                Widget.subscribe_tooltip(models && models.join(","));
+                Backend.subscribe_tooltip(models && models.join(","));
             });
         
         // Event subscription updates
         synoptic.addEventCallback("subscribe", subscribe);
 
-        Widget.setup(); 
+        Backend.setup(); 
 
     }
 
@@ -43,7 +46,7 @@ window.addEventListener("load", function () {
         newSubs.sort();
         newSubs = newSubs.join(",");
         if (newSubs != oldSubs) {
-            Widget.subscribe(newSubs); 
+            Backend.subscribe(newSubs); 
             oldSubs = newSubs;
         }
     }

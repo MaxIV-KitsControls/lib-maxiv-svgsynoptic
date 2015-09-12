@@ -6,7 +6,7 @@ from synopticwidget import SynopticWidget
 from taurus import Manager, Attribute
 from taurus.core.taurusbasetypes import TaurusSerializationMode
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.panel import TaurusWidget
+from taurus.qt.qtgui.panel import TaurusWidget, TaurusDevicePanel
 from taurusregistry import Registry
 
 
@@ -40,6 +40,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     def __init__(self, parent=None, **kwargs):
         super(self.__class__, self).__init__(parent=parent)
         Manager().setSerializationMode(TaurusSerializationMode.Concurrent)
+        self._panels = {}
 
     def setModel(self, image, section=None):
         print "setModel", image
@@ -91,6 +92,34 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
         elif kind == "section":
             self.zoom_to(kind, name)
+
+    def on_rightclick(self, kind, name):
+        """We'll try to open a generic Taurus panel for a clicked
+        device. Override this for more custom behavior!"""
+        if kind == "model" and self.registry.device_validator.isValid(name):
+            if name in self._panels:
+                widget = self._panels[name]
+                if not widget.isVisible():
+                    widget.show()
+                widget.activateWindow()
+                widget.raise_()
+            else:
+                widget = TaurusDevicePanel()
+                widget.setModel(name)
+                widget.closeEvent = lambda _: self._cleanup_panel(widget)
+                self._panels[name] = widget
+                widget.show()
+
+    def _cleanup_panel(self, w):
+        """In the long run it seems like a good idea to try and clean up
+        closed panels. In particular, the Taurus polling thread can
+        become pretty bogged down."""
+        if self.registry:
+            with self.registry.lock:
+                print "cleaning up panel for", w.getModel(), "..."
+                self._panels.pop(str(w.getModel()), None)
+                w.setModel(None)
+                print "done!"
 
     # def __on_tooltip(self, model):
     #     if hasattr(self, "_updater") and self._updater.isRunning():
@@ -144,15 +173,23 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             #                  (model, html))
 
     def _update_device_tooltip(self, device):
-        data = {"State": "...", "Status": "..."}
+        # TODO: this is pretty flaky...
+        data = {"Class": "...", "State": "...", "Status": "..."}
         data.update(self._tooltip_data[device])
-        print "tolltipdata", data
         html = json.dumps(
             ('<div>Class:&nbsp;<span>{Class}</span></div>' +
              '<div>State:&nbsp;<span class="{State}">{State}</span></div>' +
              '<div>Status:&nbsp;<span>{Status}</span></div>').format(**data))
         self.js.evaluate('synoptic.setTooltipHTML("%s", %s)' %
                          (device, html))
+
+    def closeEvent(self, event):
+        # Get rid of all opened panels, otherwise the application will
+        # not exit cleanly.
+        super(self.__class__, self).closeEvent(event)
+        for model, panel in self._panels.items():
+            print "closing panel for", model
+            panel.close()
 
 
 if __name__ == '__main__':

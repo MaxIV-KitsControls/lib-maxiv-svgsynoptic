@@ -93,8 +93,8 @@ class SynopticWidget(QtGui.QWidget):
         self.rightClicked.connect(self.on_rightclick)
         self.js.tooltip.connect(self._on_tooltip)
 
-        # Inject JSInterface into the JS global namespace as "Widget"
-        frame.addToJavaScriptWindowObject('Widget', self.js)  # confusing?
+        # Inject JSInterface into the JS global namespace as "Backend"
+        frame.addToJavaScriptWindowObject('Backend', self.js)
 
         # After the page has loaded, load the SVG itself into it
         view.loadFinished.connect(
@@ -122,9 +122,11 @@ class SynopticWidget(QtGui.QWidget):
         pass
 
     def on_click(self, kind, name):
-        """Default behavior on click is to select the item. Override
-        to change!"""
-        self.select(kind, [name])
+        """Default behavior on click. Override to change!"""
+        if kind == "section":
+            self.zoom_to(kind, name)
+        elif kind == "model":
+            self.select(kind, [name])
 
     def on_rightclick(self, kind, name):
         "Placeholder; override me!"
