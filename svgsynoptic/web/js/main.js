@@ -34,12 +34,17 @@ window.addEventListener("load", function () {
 
     }
 
-    // window.subscriptions = [];
-
-
+    // send the list of visible things to the backend whenever
+    // it changes.
+    var oldSubs = "";
     function subscribe(subs) {
-
-        Widget.subscribe(R.pluck("attribute", subs).join(",")) //;, synoptic.handleEvent);
+        var newSubs = R.pluck("attribute", subs);
+        newSubs.sort();
+        newSubs = newSubs.join(",");
+        if (newSubs != oldSubs) {
+            Widget.subscribe(newSubs); 
+            oldSubs = newSubs;
+        }
     }
 
     // Load the actual SVG into the page
@@ -138,6 +143,8 @@ window.addEventListener("load", function () {
                             name = match[2].trim();
                         data[kind] = name;
                         classes[kind] = true;
+                        data.type = kind;
+                        data.name = name;
 
                         if (kind == "device" && !data.attribute) {
                             // For devices, we assume that the "status" attribute

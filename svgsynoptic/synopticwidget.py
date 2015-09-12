@@ -103,7 +103,10 @@ class SynopticWidget(QtGui.QWidget):
     def _handle_subscriptions(self, models):
         # we get the subscribed models as a comma separated list from Qt,
         # let's deliver something neater.
-        self.handle_subscriptions(list(models.split(",")))
+        if models:
+            self.handle_subscriptions(str(models).split(","))
+        else:
+            self.handle_subscriptions([])
 
     def handle_subscriptions(self, models):
         # This noop needs to be overridden in order for subscriptions
