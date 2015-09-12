@@ -16,7 +16,7 @@ svg .state-STANDBY {
 }
 
 svg .state-ON, svg .state-OPEN, svg .state-EXTRACT {
-    stroke: #808080;
+    stroke: #00000;
     fill: #00FF00;
 }
 

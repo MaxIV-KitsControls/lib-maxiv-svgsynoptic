@@ -10,6 +10,7 @@ body, html {
 #view {
     height: 100%;
     overflow: hidden;
+    -webkit-transform: translateZ(0);
 }
 
 
@@ -22,6 +23,10 @@ img.logo {
     right: 10px;
     opacity: 0.5;
     z-index: 1000;
+}
+
+#symbols {
+    display: none;
 }
 
 svg {
