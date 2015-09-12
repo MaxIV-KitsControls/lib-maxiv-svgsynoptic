@@ -70,11 +70,6 @@ Synoptic = (function () {
             // leftclick
             svg.selectAll(".section, .model")
                 .on("click", function (d) {
-                    //selectDevice(d.name);
-                    var type = getTypeFromData(d);
-                    console.log("click " + type + " " + d[type]);
-                    var bbox = getBBox(type, d[type]);
-                    console.log("click bbox "+bbox.x+" "+bbox.y);
                     if (d3.event.defaultPrevented) return;
                     // Only makes sense to click items with data
                     if (d) fireEventCallbacks("click", d);

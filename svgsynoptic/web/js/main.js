@@ -4,7 +4,7 @@ window.addEventListener("load", function () {
 
     /* Note: "Backend" is our connection to the outside; it
        may be a Qt widget or an ajax bridge; from here it all
-       works the same as the API should be identical. */
+       works the same, the API should be identical. */
     
     function main (svg) {
 
@@ -130,13 +130,11 @@ window.addEventListener("load", function () {
 
     function activateSVG (svg) {
         // go through the svg and find all <desc> elements containing
-        // definitions like e.g. "device=x/y/z". For those found we set
+        // definitions like e.g. "model=x/y/z". For those found we set
         // the class and data of the parent element accordingly.
         // This makes it convenient to use D3.js to iterate over things.
-        //var pattern = /^(device|attribute|section|alarm)=(.*)/;
-        var pattern = /^(.*)=(.*)/;
-
-        //svg.call(tooltip);
+        var pattern = /^(model|section|alarm)=(.*)/;
+        // TODO: Allow arbitary data on nodes? How could that be used?
 
         svg.selectAll("desc")
             .each(function () {
@@ -150,12 +148,6 @@ window.addEventListener("load", function () {
                         data[kind] = name.split(",");
                         console.log(kind + " " + name + " " + data[kind])
                         classes[kind] = true;
-
-                        // if (kind == "device" && !data.attribute) {
-                        //     // For devices, we assume that the "status" attribute
-                        //     // is interesting. This saves a lot of typing.
-                        //     data.attribute = name + "/State";
-                        // }
                     }
                 }, this);
                 console.log(classes);
