@@ -1,42 +1,29 @@
 Tooltip = (function () {
 
-    // Template for the tooltip
-    var tooltipContent = Handlebars.compile(
-        "<table>" +
-            "{{#if device}}" +
-               '<tr><td class="label">Device:</td><td class="value">{{device}} {{subscribed}}</td></tr>' +
-            // '<tr><td class="label">State:</td><td class="value">{{html}}</td></tr>' +
-               '<tr><td class="label">Type:</td><td class="value">{{devtype}}</td></yt>' +
-            "{{else}}" +
-                "{{#if attribute}}" +
-                   '<tr><td class="label">Attribute:</td><td class="value">{{attribute}}</td></tr>' +
-                   // '<tr><td class="label">Value:</td><td class="value">{{value}}</td></tr>' +
-                "{{/if}}" +
-            "{{/if}}" +
-            "{{#if section}}" +
-                '<tr><td class="label">Section:</td><td class="value">{{section}}</td></tr>' +
-            "{{/if}}" +
-        "</table>"
-    );
 
-
-    function Tooltip(element, nodeId) {
+    // A simple tooltip (info box that pops up under the mouse)
+    function Tooltip(element, nodeId, data) {
 
         this.id = nodeId;
-
-        console.log("Tooltip: " + nodeId);
+        this.data = data;
 
         var tooltip = d3.select(element)
                 .append("div")
                 .classed("tooltip", true);
-            //.html(function () {return tooltipContent(data);})
-            // .style("display", "inline");
 
         this.update = function (data) {
             console.log(JSON.stringify(data));
-            tooltip.html(function () {return tooltipContent(data);});
+            tooltip.html('<div class="model">' +
+                         (this.data.model || this.data.section) + "</div>");
         };
 
+        this.setHTML = function (model, html) {
+            if (model == this.data.model) {
+                tooltip.html('<div class="model">' + this.data.model + "</div>" +
+                             html);
+            }
+        }
+        
         this.move = function () {
             // Crude attempt to make the tooltip fit on the screen... improve!
             if (d3.event.clientX > window.innerWidth/2) {

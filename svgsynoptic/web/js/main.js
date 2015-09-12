@@ -4,8 +4,6 @@ window.addEventListener("load", function () {
 
     function main (svg) {
 
-        console.log("main")
-        
         var container = document.getElementById("view");
         synoptic = new Synoptic(container, svg);
 
@@ -13,24 +11,26 @@ window.addEventListener("load", function () {
         synoptic.addEventCallback(
             "click", function (data) {
                 if (R.has("section", data))
-                    Widget.left_click("section", data.section);2
-                if (R.has("device", data))
-                    Widget.left_click("device", data.device);
-                if (R.has("attribute", data))
-                    Widget.left_click("attribute", data.attribute);
+                    Widget.left_click("section", data.section);
+                if (R.has("model", data))
+                    Widget.left_click("model", data.model);
             });
         synoptic.addEventCallback(
             "contextmenu", function (data) {
+                // FIXME
                 Widget.right_click(data.type, data.name);
                 console.log("rightclick " + data.type + " " + data.name);
             });
 
+        synoptic.addEventCallback(
+            "tooltip", function (models) {
+                Widget.subscribe_tooltip(models && models.join(","));
+            });
+        
         // Event subscription updates
         synoptic.addEventCallback("subscribe", subscribe);
 
-        console.log("Widget", Widget);
-        
-        Widget.setup();  // start the SSE stuff
+        Widget.setup(); 
 
     }
 
@@ -38,7 +38,8 @@ window.addEventListener("load", function () {
     // it changes.
     var oldSubs = "";
     function subscribe(subs) {
-        var newSubs = R.pluck("attribute", subs);
+        var newSubs = R.pluck("model", subs);
+        console.log("subscribe " + newSubs);
         newSubs.sort();
         newSubs = newSubs.join(",");
         if (newSubs != oldSubs) {
@@ -129,7 +130,8 @@ window.addEventListener("load", function () {
         // definitions like e.g. "device=x/y/z". For those found we set
         // the class and data of the parent element accordingly.
         // This makes it convenient to use D3.js to iterate over things.
-        var pattern = /^(device|attribute|section|alarm)=(.*)/;
+        //var pattern = /^(device|attribute|section|alarm)=(.*)/;
+        var pattern = /^(.*)=(.*)/;
 
         //svg.call(tooltip);
 
@@ -140,20 +142,20 @@ window.addEventListener("load", function () {
                 lines.forEach(function (line) {
                     var match = pattern.exec(line);
                     if (match) {
-                        var kind = match[1].trim(),  // device/attribute/section
+                        var kind = match[1].trim(),  
                             name = match[2].trim();
-                        data[kind] = name;
+                        data[kind] = name.split(",");
+                        console.log(kind + " " + name + " " + data[kind])
                         classes[kind] = true;
-                        data.type = kind;
-                        data.name = name;
 
-                        if (kind == "device" && !data.attribute) {
-                            // For devices, we assume that the "status" attribute
-                            // is interesting. This saves a lot of typing.
-                            data.attribute = name + "/State";
-                        }
+                        // if (kind == "device" && !data.attribute) {
+                        //     // For devices, we assume that the "status" attribute
+                        //     // is interesting. This saves a lot of typing.
+                        //     data.attribute = name + "/State";
+                        // }
                     }
                 }, this);
+                console.log(classes);
                 d3.select(this.parentNode)
                     .classed(classes)
                     .datum(data);
@@ -162,7 +164,11 @@ window.addEventListener("load", function () {
 
     }
 
-
+    d3.selection.prototype.size = function() {
+        var n = 0;
+        this.each(function() { ++n; });
+        return n;
+    };
     // load("images/maxiv.svg");
 
     //main(synoptify(draw(ring3)));

@@ -4,6 +4,7 @@ body, html {
     margin: 0;
     height: 100%;
     width: 100%;
+    background: #eee;
 }
 
 #view {
@@ -16,7 +17,38 @@ text, tspan {
     pointer-events: none;
 }
 
+img.logo {
+    position: absolute;
+    right: 10px;
+    opacity: 0.5;
+    z-index: 1000;
+}
+
 svg {
     text-rendering: optimizeSpeed;
     shape-rendering: optimizeSpeed;
+}
+
+circle.selection {
+    opacity: 0.25;
+    fill: black;
+    stroke: none;
+    pointer-events: none;
+}
+
+.model.hidden {
+    opacity: 0.5;
+}
+
+text.hidden {
+    display: none;
+    /* opacity: 0.5; */
+}
+
+.zoom.hidden {
+    pointer-events: none;
+}
+
+.zoom.really-hidden {
+    display: none;
 }

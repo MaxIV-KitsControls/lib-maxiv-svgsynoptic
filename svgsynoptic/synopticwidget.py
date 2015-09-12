@@ -91,6 +91,7 @@ class SynopticWidget(QtGui.QWidget):
         self.rightClicked = self.js.rightclicked
         self.clicked.connect(self.on_click)
         self.rightClicked.connect(self.on_rightclick)
+        self.js.tooltip.connect(self._on_tooltip)
 
         # Inject JSInterface into the JS global namespace as "Widget"
         frame.addToJavaScriptWindowObject('Widget', self.js)  # confusing?
@@ -123,22 +124,36 @@ class SynopticWidget(QtGui.QWidget):
     def on_click(self, kind, name):
         """Default behavior on click is to select the item. Override
         to change!"""
-        self.select(kind, name)
+        self.select(kind, [name])
 
     def on_rightclick(self, kind, name):
         "Placeholder; override me!"
         pass
 
+    def _on_tooltip(self, models):
+        if models:
+            self.on_tooltip(str(models).split(","))
+        else:
+            self.on_tooltip([])
+
+    def on_tooltip(self, models):
+        """This means that the synoptic is asking for updated
+        data to fill a tooltip. Use the updateTooltipHTML()
+        JS method to set it."""
+        print "***TOOLTIP***"
+        self.js.evaluate('synoptic.setTooltipHTML("%s", "<b>Hello</b>")' % models[0])
+
     # # # 'Public' API # # #
 
     def zoom_to(self, kind, name):
         "Move the view so that the given object is visible"
-        self.js.evaluate("synoptic.zoomTo(kind, %r)" % str(name))
+        self.js.evaluate("synoptic.zoomTo(%r, %r)" % (str(kind), str(name)))
 
     def select(self, kind, names, replace=True):
         """Set a list of items as 'selected'. By default unselects all
         previously selected things first.
         """
+        print "select", kind, names
         if replace:
             self.js.evaluate("synoptic.unselectAll()")
         if names:

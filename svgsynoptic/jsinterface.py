@@ -14,6 +14,7 @@ class JSInterface(QtCore.QObject):
     subscription = QtCore.pyqtSignal(str)
     rightclicked = QtCore.pyqtSignal(str, str)
     leftclicked = QtCore.pyqtSignal(str, str)
+    tooltip = QtCore.pyqtSignal(str)
     evaljs = QtCore.pyqtSignal(str)
     lock = Lock()
 
@@ -40,9 +41,17 @@ class JSInterface(QtCore.QObject):
         self.rightclicked.emit(kind, name)
 
     @QtCore.pyqtSlot(str)
+    def update_tooltip(self, model):
+        self.tooltip.emit(model)
+
+    @QtCore.pyqtSlot(str)
     def subscribe(self, devices):
         "Update the list of attributes to pay attention to"
         self.subscription.emit(devices)
+
+    @QtCore.pyqtSlot(str)
+    def subscribe_tooltip(self, models):
+        self.tooltip.emit(models)
 
     @QtCore.pyqtSlot()
     def setup(self):

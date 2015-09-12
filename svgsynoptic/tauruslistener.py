@@ -15,7 +15,7 @@ def error_str(err):
 
 
 # Based on code from the taurus-web project
-class TaurusWebAttribute(object):
+class TaurusAttribute(object):
     """This object is a listener for the taurus attribute value.
     When a attribute changes it sends an event. The event
     triggers a call to *eventReceived*. *eventReceived* will transform

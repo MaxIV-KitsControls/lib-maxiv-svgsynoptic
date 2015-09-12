@@ -1,8 +1,21 @@
+/*
+The View is an interactive container for an SVG document.  It allows
+the used to zoom and pan freely using the mouse.
+
+It can be configured to switch between detail levels in the document
+depending on the current zoom level.
+
+Also provides some convenience methods for quickly moving the
+virwpoint to a given item, etc.
+*/
+
 var View = (function () {
 
-    function View (element, svg, maxZoom, zoomSteps) {
+    function View (element, svg, zoomSteps) {
 
-        maxZoom = maxZoom || 100;
+        zoomSteps = zoomSteps || [1, 30, 100];
+        var maxZoom = zoomSteps.slice(-1)[0];
+        console.log("maxZoom " + maxZoom);
 
         var svgMain = svg.select("#svg-main"),
             changeCallbacks = [];
@@ -10,10 +23,47 @@ var View = (function () {
         var width = parseInt(svg.attr("width")),
             height = parseInt(svg.attr("height"));
 
-        console.log("SVG dimensiosn " + width +","+ height);
-        
         var elWidth, elHeight, scale0;
         setSize();
+
+        function _updateDetailLevel(scale) {
+
+            var relScale = scale / scale0, zoomLevel;
+
+            /* This is a primitive way to switch zoom level.
+               Can't see a way to make this completely general
+               so for now it must be configured manually. */
+
+            for(var i = 0; i<zoomSteps.length; i++) {
+                var z = zoomSteps[i];
+                if (z >= relScale) {
+                    zoomLevel = i;
+                    break;
+                }
+            }
+
+            if (zoomLevel != oldZoomLevel) {
+                var levelClass = ".level" + zoomLevel;
+                // hide the old zoom level...
+                zoomSel.filter(":not(" + levelClass + ")")
+                    .classed("hidden", true)
+                    .transition().duration(400)
+                    .attr("opacity", 0)
+                    .each("end", function () {
+                        if (d3.select(this).attr("opacity") === 0) {
+                            d3.select(this)
+                                .classed("really-hidden", true);
+                        }
+                    });
+                // ...and show the new
+                zoomSel.filter(levelClass)
+                    .classed("hidden", false)
+                    .classed("really-hidden", false)
+                    .transition().duration(400)
+                    .attr("opacity", 1);
+                oldZoomLevel = zoomLevel;
+            }
+        }
 
         function zoomed() {
             svgMain.attr("transform", "translate(" + d3.event.translate +
@@ -27,48 +77,6 @@ var View = (function () {
             updateDetailLevel = _.throttle(_updateDetailLevel, 100,
                                            {leading: false});
         
-        function _updateDetailLevel(scale) {
-
-            var relScale = scale / scale0, zoomLevel;
-
-            /* This is a primitive way to figure out at which scale
-               we are.  Really need to make this configurable, since I
-               can't see any way to make this completely general. */
-            switch (true) {
-            case relScale == 1:
-                zoomLevel = 0;
-                break;
-            case relScale < 30:
-                zoomLevel = 1;
-                break;
-            default:
-                zoomLevel = 2;
-            }
-
-            if (zoomLevel != oldZoomLevel) {
-                var levelClass = ".level" + zoomLevel;
-                // ...and hide the old.
-                zoomSel.filter(":not(" + levelClass + ")")
-                    .classed("hidden", true)
-                    .transition().duration(400)
-                    .attr("opacity", 0)
-                    .each("end", function () {
-                        console.log("zoom opacity " + d3.select(this).attr("opacity"));
-                        if (d3.select(this).attr("opacity") === 0) {
-                            d3.select(this)
-                                .classed("really-hidden", true);
-                        }
-                    });
-                // Show the new zoomlevel...
-                zoomSel.filter(levelClass)
-                    .classed("hidden", false)
-                    .classed("really-hidden", false)
-                    .transition().duration(400)
-                    .attr("opacity", 1);
-                oldZoomLevel = zoomLevel;
-            }
-        }
-
         var zoom = d3.behavior.zoom()
                 //.inertia(true)   // maybe d3 v3.6?
                 .scaleExtent([scale0, 100*scale0])

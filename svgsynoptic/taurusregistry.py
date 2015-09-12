@@ -3,7 +3,8 @@ import time
 
 from PyQt4 import QtCore
 from taurus import Attribute
-from taurus.core.taurusvalidator import AttributeNameValidator
+from taurus.core.taurusvalidator import (AttributeNameValidator,
+                                         DeviceNameValidator)
 import PyTango
 
 
@@ -18,7 +19,8 @@ class Registry(QtCore.QThread):
         self.listeners = {}
         self.callback = callback
         self._attributes = None
-        self.attribute_name_validator = AttributeNameValidator()
+        self.attribute_validator = AttributeNameValidator()
+        self.device_validator = DeviceNameValidator()
         self.lock = Lock()
         self.stopped = Event()
 
@@ -31,29 +33,25 @@ class Registry(QtCore.QThread):
                 with self.lock:
                     self.update(attributes)
 
-    def subscribe(self, attributes):
-        self._attributes = attributes
+    def subscribe(self, models=[]):
+        attrs = set()
+        for model in models:
+            if self.attribute_validator.isValid(model):
+                attrs.add(model)
+            elif self.device_validator.isValid(model):
+                attrs.add(model + "/State")
+            else:
+                print ("Invalid model %s; must be Tango device or attribute!" %
+                       model)
+        self._attributes = attrs
 
-    def update(self, attributes):
+    def update(self, attributes=set()):
 
         "Update the subscriptions"
 
-        attrs = set()
-        invalid_attrs = set()
-
-        for attr in attributes:
-            if self.attribute_name_validator.isValid(attr):
-                attrs.add(attr)
-            else:
-                invalid_attrs.add(attr)
-        if invalid_attrs:
-            # TODO: logging
-            print "Got invalid atttributes: %s" % ",".join(invalid_attrs)
-
         listeners = set(self.listeners.keys())
-
-        new_attrs = attrs - listeners
-        old_attrs = listeners - attrs
+        new_attrs = attributes - listeners
+        old_attrs = listeners - attributes
 
         for attr in old_attrs:
             self.listeners.pop(attr).removeListener(self.callback)
@@ -70,4 +68,4 @@ class Registry(QtCore.QThread):
 
     def clear(self):
         self._attributes = None
-        self.update([])
+        self.update()

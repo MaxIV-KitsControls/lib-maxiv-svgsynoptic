@@ -3,10 +3,14 @@ Synoptic = (function () {
     // This represents the whole "synoptic" widget and all interactions
     function Synoptic (container, svg) {
 
-        var view = new View(container, svg);
+        // the View takes care of the basic navigation; zooming,
+        // panning etc, and switching between detail levels.
+        var view = new View(container, svg, [1, 10, 100]);
+        
         // whenever the user zooms or pans the view, we need to update the
         // listeners etc. But since this is a pretty expensive and slow
-        // operation, we'll do it at most once a second.
+        // operation, we'll only do it once the user has stopped moving
+        // around for a bit.
         view.addCallback(
             _.debounce(updateVisibility, 500, {leading: false}));
 
@@ -22,11 +26,12 @@ Synoptic = (function () {
 
         var selectNodes = function (type, name) {
             return svg.selectAll(":not(text)." + type)
-                .filter(function (d) {return d[type] == name;});
+                .filter(function (d) {return (d[type] == name) ||
+                                      (d[type].indexOf(name) != -1);});
         }
 
         function getNodeId (data) {
-            return data.section + "+" + data.device + "+" + data.attribute;
+            return data.model + "+" + data.section;
         }
 
         /********** Input events **********/
@@ -36,21 +41,21 @@ Synoptic = (function () {
             "click": [],
             "contextmenu": [],
             "subscribe": [],
-            "unsubscribe": []
+            "unsubscribe": [],
+            "tooltip": []
         };
 
         // run any registered callbacks for a given event and item type
         function fireEventCallbacks(eventType, data) {
+            console.log("fireEventCallbacks " + eventType);
             listeners[eventType].forEach(function (cb) {cb(data);});
         }
 
         function getTypeFromData(el) {
-            if (el.device)
-                return "device";
             if (el.section)
                 return "section";
-            if (el.attribute)
-                return "attribute";
+            if (el.model)
+                return "model";
         }
 
         function setupMouse () {
@@ -63,7 +68,7 @@ Synoptic = (function () {
             // likely to be a bug in older webkit versions.
 
             // leftclick
-            svg.selectAll(".section, .device")
+            svg.selectAll(".section, .model")
                 .on("click", function (d) {
                     //selectDevice(d.name);
                     var type = getTypeFromData(d);
@@ -86,15 +91,20 @@ Synoptic = (function () {
                 .on("mouseout", closeTooltip);
         }
 
-        var tooltip;
+        var tooltip, tooltipUpdater;
+
+        function updateTooltip(model) {
+            fireEventCallbacks("tooltip", model);
+        }
 
         function showTooltip(data) {
             if (this.getAttribute("id")) {
                 if (tooltip)
                     tooltip.close();
-                tooltip = new Tooltip(container, getNodeId(data));
+                tooltip = new Tooltip(container, getNodeId(data), data);
                 tooltip.update(data);
                 tooltip.move();
+                fireEventCallbacks("tooltip", data.model)
             }
         }
 
@@ -108,16 +118,17 @@ Synoptic = (function () {
             if (tooltip && getNodeId(data) == tooltip.id) {
                 tooltip.close();
                 delete tooltip;
+                fireEventCallbacks("tooltip", []);
             }
         }
 
         setupMouse();
 
-        function selectDevice (devname) {
-            var node = selectNodes("device", devname).node(),
-                bbox = getBBox("device", devname);
+        function selectModel (model) {
+            var node = selectNodes("model", model).node(),
+                bbox = getBBox("model", model);
 
-            console.log("selectDevice " + devname + " " + bbox.x + " " + bbox.y + " " + bbox.width + " " + bbox.height)
+            console.log("selectModel " + model + " " + bbox.x + " " + bbox.y + " " + bbox.width + " " + bbox.height)
             d3.select(node.parentNode)
                 .insert("svg:circle", ":first-child")
                 .attr("cx", bbox.x + bbox.width/2)
@@ -128,8 +139,8 @@ Synoptic = (function () {
 
         /********** Tango events **********/
 
-        function setState(kind, name, state) {
-            selectNodes(kind, name)
+        function setState(type, name, state) {
+            selectNodes(type, name)
                 .classed(getStateClasses(state));
         }
         
@@ -147,31 +158,31 @@ Synoptic = (function () {
 
         var no_state_classes = getStateClasses();
 
-        function handleAttributeEvent (event) {
-            var classes;
-            var sel = selectNodes("attribute", event.model);
-            if (event.event_type == "value") {
-                if (event.type == "DevState") {
-                    classes = getStateClasses(event.html);
-                    sel.classed(classes);
-                    var devicename = event.model.split("/").slice(0, -1).join("/");
-                    selectNodes("device", devicename)
-                        .classed(classes);
-                } else if (event.type == "DevBoolean") {
-                    var value = parseFloat(event.html) !== 0.0;
-                    classes = {"boolean-true": value, "boolean-false": !value};
-                    sel.classed(classes);
-                } else {
-                    // TODO: printf?
-                    sel.text(event.html + (event.unit? " " + event.unit : ""));
-                }
-            }
-            if (tooltip) {
-                if (getNodeId(event) == tooltip.id) {
-                    tooltip.update(event);
-                }
-            }
-        };
+        // function handleAttributeEvent (event) {
+        //     var classes;
+        //     var sel = selectNodes("attribute", event.model);
+        //     if (event.event_type == "value") {
+        //         if (event.type == "DevState") {
+        //             classes = getStateClasses(event.html);
+        //             sel.classed(classes);
+        //             var devicename = event.model.split("/").slice(0, -1).join("/");
+        //             selectNodes("device", devicename)
+        //                 .classed(classes);
+        //         } else if (event.type == "DevBoolean") {
+        //             var value = parseFloat(event.html) !== 0.0;
+        //             classes = {"boolean-true": value, "boolean-false": !value};
+        //             sel.classed(classes);
+        //         } else {
+        //             // TODO: printf?
+        //             sel.text(event.html + (event.unit? " " + event.unit : ""));
+        //         }
+        //     }
+        //     if (tooltip) {
+        //         if (getNodeId(event) == tooltip.id) {
+        //             tooltip.update(event);
+        //         }
+        //     }
+        // };
 
 
         /********** Visibility **********/
@@ -238,17 +249,13 @@ Synoptic = (function () {
         // shown layers and zoom levels.
         function selectShownThings() {
             return svg.selectAll(
-                "g.layer:not(.hidden) > g.zoom:not(.hidden) .device," +
-                    "g.layer:not(.hidden) > g.zoom:not(.hidden) .attribute," +
-                    "g.layer:not(.hidden) > g.zoom:not(.hidden) .section"
+                "g.layer:not(.hidden) > g.zoom:not(.hidden) > .model"
             );
         }
 
         // Hmm... this does not quite work
         function selectHiddenThings() {
-            return svg.selectAll("g.layer.hidden > g.zoom .device," +
-                                 "g.layer.hidden > g.zoom .attribute," +
-                                 "g.layer.hidden > g.zoom .section");
+            return svg.selectAll("g.layer.hidden .model, g.zoom.hidden > .model");
         }
 
         function fireSubscribeCallbacks(sel) {
@@ -263,37 +270,27 @@ Synoptic = (function () {
             subEvent = null;
         }
 
-        // var subEvent;
-        // function fireSubscribeCallbacks(sel) {
-        //     if (subEvent) {
-        //         clearTimeout(subEvent);
-        //     }
-        //     subEvent = setTimeout(_fireSubscribeCallbacks, 1000, sel);
-        // }
-
         // Find all devices that can be seen and activate them
         function updateVisibility (vbox) {
             // TODO: for some reason we don't unsubscribe to things when
             // zooming *out* to a higher level.
             vbox = vbox || view.getViewBox();
-            console.log("updateVisibility", vbox);
             var sel = selectShownThings();
 
             sel  // hide things that are out of view
                 .filter(function (d) {
-                    return !isInView(getBBox(d.type, d.name), vbox);
+                    return !isInView(getBBox("model", d.model[0]), vbox);
                 })
                 .classed("hidden", true)
-                .filter(function (d) {return d && d.attribute;})
                 .classed(no_state_classes);  // remove state info
 
             sel  // show things that are in view
                 .filter(function (d) {
-                    return isInView(getBBox(d.type, d.name), vbox);
+                    return isInView(getBBox("model", d.model[0]), vbox);
                 })
                 .classed("hidden", false)  // then activate visible ones
                 // if it's an attribute, subscribe to it
-                .filter(function (d) {return d && d.attribute;})
+                //.filter(function (d) {return d && d.attribute;})
                 .call(fireSubscribeCallbacks);
 
             // TODO: pretty inefficient to run isInView twice for every
@@ -304,19 +301,25 @@ Synoptic = (function () {
             var sel = selectNodes(type, name);
             var node = sel[0][0];
             var bbox = util.transformedBoundingBox(node);
-            console.log("bbox " + bbox.x + " " + bbox.y + " " +
+            console.log(node + " bbox " + bbox.x + " " + bbox.y + " " +
                         bbox.width + " " + bbox.height);
             view.moveToBBox(bbox, 200, 0.25);
         };
         
         /********** API **********/
 
+        this.addEventCallback = function (eventType, callback) {
+            listeners[eventType].push(callback);
+        };
+
+        // TODO: removeEventCallback()
+        
         this.zoomTo = zoomTo;
         
         this.select = function (type, name) {
             switch (type) {
-            case "device":
-                selectDevice(name);
+            case "model":
+                selectModel(name);
                 break;
             }
         };
@@ -325,25 +328,25 @@ Synoptic = (function () {
             svg.selectAll("circle.selection").remove();
         };
 
-        this.addEventCallback = function (eventType, callback) {
-            listeners[eventType].push(callback);
-        };
 
-        // TODO: removeEventCallback()
+        // this.handleEvents = function (events) {
+        //     //events = JSON.parse(events);
+        //     events.forEach(handleAttributeEvent);
+        // };
 
-        this.handleEvents = function (events) {
-            //events = JSON.parse(events);
-            events.forEach(handleAttributeEvent);
-        };
-
-        this.handleEvent = function (event) {
-            // console.log("handleEvent " + event);
-            handleAttributeEvent(JSON.parse(event));
-        }
+        // this.handleEvent = function (event) {
+        //     // console.log("handleEvent " + event);
+        //     handleAttributeEvent(JSON.parse(event));
+        // }
 
         this.setState = setState;
+
+        this.setTooltipHTML = function (model, html) {
+            console.log("setToolTioHTMO " + model + " " + html);
+            tooltip && tooltip.setHTML(model, html);
+        }
         
-        // // preheat the getBBox cache (takes a few seconds)
+        // // preheat the getBBox cache (may take a few seconds)
         // svg.selectAll(".device, .attribute, .section")
         //     .filter(function (d) {
         //         if (d) getBBox(d.type, d.name);

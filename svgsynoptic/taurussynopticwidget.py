@@ -1,12 +1,35 @@
 import json
 
+from PyQt4 import QtCore
 import PyTango
 from synopticwidget import SynopticWidget
-from taurus import Manager
+from taurus import Manager, Attribute
 from taurus.core.taurusbasetypes import TaurusSerializationMode
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.panel import TaurusWidget
 from taurusregistry import Registry
+
+
+class TooltipUpdater(QtCore.QThread):
+
+    finished = QtCore.pyqtSignal(str, str)
+
+    def __init__(self, model):
+        QtCore.QThread.__init__(self)
+        self.model = model
+
+    def run(self):
+        # TODO: This needs to be redone; maybe use string.template?
+        try:
+            attribute = Attribute(str(self.model) + "/State")
+            if attribute:
+                value = attribute.read()
+                html = json.dumps('Value:&nbsp;' +
+                                  '<span class="value">%s</span>'
+                                  % value.value)
+            self.finished.emit(self.model, html)
+        except PyTango.DevFailed as e:
+            print e
 
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
@@ -24,6 +47,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         self.registry = Registry(self._attribute_listener)
         self.registry.start()
 
+        self._tooltip_data = {}
+        self.tooltip_registry = Registry(self._tooltip_updater)
+        self.tooltip_registry.start()
+
     def getModel(self):
         return self._url
 
@@ -35,6 +62,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         self.registry = None
 
     def handle_subscriptions(self, models):
+        print "handle_subscriptions", models
         if self.registry:
             self.registry.subscribe(models)
 
@@ -49,7 +77,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             value = evt_value.value
             device = evt_src.getParentObj()
             if isinstance(value, PyTango._PyTango.DevState):
-                self.js.evaluate("synoptic.setState('device', %r, %r)" %
+                self.js.evaluate("synoptic.setState('model', %r, %r)" %
                                  (device.name(), str(value)))
 
     def on_click(self, kind, name):
@@ -58,11 +86,73 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         else.
         """
         print "on_click", kind, name
-        if kind == "device":
-            self.select_devices([name])
+        if kind == "model":
+            self.select(kind, [name])
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
         elif kind == "section":
             self.zoom_to(kind, name)
+
+    # def __on_tooltip(self, model):
+    #     if hasattr(self, "_updater") and self._updater.isRunning():
+    #         self._updater.stop()
+    #     self._updater = TooltipUpdater(model)
+    #     self._updater.finished.connect(self._on_tooltip)
+    #     self._updater.start()
+
+    # def _on_tooltip(self, model, html):
+    #     self.js.evaluate('synoptic.setTooltipHTML("%s", %s)' % (model, html))
+
+    def on_tooltip(self, models):
+        print "on_tooltip", models
+        if models:
+            all_models = []
+            for model in models:
+                if self.registry.device_validator.isValid(model):
+                    all_models.append(model + "/State")
+                    all_models.append(model + "/Status")
+                else:
+                    all_models.append(model)
+            self.tooltip_registry.subscribe(all_models)
+            self._tooltip_data = dict((str(model), {}) for model in models)
+        else:
+            self.tooltip_registry.subscribe()
+            self._tooltip_data.clear()
+
+        print "Tooltip listeners:", self._tooltip_data
+
+    def _tooltip_updater(self, evt_src, evt_type, evt_value):
+        if evt_type in (PyTango.EventType.CHANGE_EVENT,
+                        PyTango.EventType.PERIODIC_EVENT):
+            value = evt_value.value
+            model = evt_src.getNormalName()
+            device, attr = model.rsplit("/", 1)
+            if attr in ("State", "Status"):
+                self._tooltip_data[device][attr] = value
+                dev = evt_src.getParentObj()
+                info = dev.getHWObj().info()
+                print info
+                self._tooltip_data[device]["Class"] = info.dev_class
+                # self._tooltip_data.setdefault("Class", device.)
+                self._update_device_tooltip(device)
+            else:
+                self._tooltip_data[model] = evt_value
+
+            # html = json.dumps('Value:&nbsp;' +
+            #                   '<span class="value">%s</span>'
+            #                   % value)
+            # self.js.evaluate('synoptic.setTooltipHTML("%s", %s)' %
+            #                  (model, html))
+
+    def _update_device_tooltip(self, device):
+        data = {"State": "...", "Status": "..."}
+        data.update(self._tooltip_data[device])
+        print "tolltipdata", data
+        html = json.dumps(
+            ('<div>Class:&nbsp;<span>{Class}</span></div>' +
+             '<div>State:&nbsp;<span class="{State}">{State}</span></div>' +
+             '<div>Status:&nbsp;<span>{Status}</span></div>').format(**data))
+        self.js.evaluate('synoptic.setTooltipHTML("%s", %s)' %
+                         (device, html))
 
 
 if __name__ == '__main__':
