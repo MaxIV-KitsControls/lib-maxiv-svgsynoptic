@@ -1,29 +1,28 @@
 import json
 
-from taurus.external.qt import Qt
-from taurus import Manager
-from taurus.qt.qtgui.panel import TaurusWidget
-from taurus.core.taurusbasetypes import TaurusSerializationMode
-
+import PyTango
 from synopticwidget import SynopticWidget
+from taurus import Manager
+from taurus.core.taurusbasetypes import TaurusSerializationMode
+from taurus.external.qt import Qt
+from taurus.qt.qtgui.panel import TaurusWidget
 from taurusregistry import Registry
 
 
-class TaurusSynopticWidget(SynopticWidget):
+class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     """A SynopticWidget that connects to Tango in order to
     get updates for models (attributes)."""
 
     def __init__(self, parent=None, **kwargs):
-        super(self.__class__, self).__init__(parent)
+        super(self.__class__, self).__init__(parent=parent)
         Manager().setSerializationMode(TaurusSerializationMode.Concurrent)
-        self._url = None
 
-    def setModel(self, url, section=None):
-        self.set_url(url)
+    def setModel(self, image, section=None):
+        print "setModel", image
+        self.set_url(image)
         self.registry = Registry(self._attribute_listener)
         self.registry.start()
-        #self._setup_ui(url, section)
 
     def getModel(self):
         return self._url
@@ -39,10 +38,19 @@ class TaurusSynopticWidget(SynopticWidget):
         if self.registry:
             self.registry.subscribe(models)
 
-    def _attribute_listener(self, event):
+    def __attribute_listener(self, event):
         # TODO: seems like multiline strings may need more escaping, else
         # evaljs complains about "SyntaxError: Expected token ')'"
         self.js.evaluate("synoptic.handleEvent(%r)" % json.dumps(event))
+
+    def _attribute_listener(self, evt_src, evt_type, evt_value):
+        if evt_type in (PyTango.EventType.CHANGE_EVENT,
+                        PyTango.EventType.PERIODIC_EVENT):
+            value = evt_value.value
+            device = evt_src.getParentObj()
+            if isinstance(value, PyTango._PyTango.DevState):
+                self.js.evaluate("synoptic.setState('device', %r, %r)" %
+                                 (device.name(), str(value)))
 
     def on_click(self, kind, name):
         """The default behavior is to mark a clicked device and to zoom to a

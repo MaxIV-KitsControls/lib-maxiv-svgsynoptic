@@ -2,10 +2,9 @@ from threading import Lock, Event
 import time
 
 from PyQt4 import QtCore
+from taurus import Attribute
 from taurus.core.taurusvalidator import AttributeNameValidator
 import PyTango
-
-from tauruslistener import TaurusWebAttribute
 
 
 class Registry(QtCore.QThread):
@@ -57,11 +56,12 @@ class Registry(QtCore.QThread):
         old_attrs = listeners - attrs
 
         for attr in old_attrs:
-            self.listeners.pop(attr).clear()
+            self.listeners.pop(attr).removeListener(self.callback)
 
         for attr in new_attrs:
             try:
-                self.listeners[attr] = TaurusWebAttribute(attr, self.callback)
+                tattr = self.listeners[attr] = Attribute(attr)
+                tattr.addListener(self.callback)
             except PyTango.DevFailed:
                 pass  # Do something?
 
@@ -70,4 +70,4 @@ class Registry(QtCore.QThread):
 
     def clear(self):
         self._attributes = None
-        self._subscribe([])
+        self.update([])

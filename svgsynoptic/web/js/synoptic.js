@@ -128,6 +128,11 @@ Synoptic = (function () {
 
         /********** Tango events **********/
 
+        function setState(kind, name, state) {
+            selectNodes(kind, name)
+                .classed(getStateClasses(state));
+        }
+        
         var states = ["UNKNOWN", "INIT", "RUNNING", "MOVING",
                       "ON", "OFF", "INSERT", "EXTRACT", "OPEN", "CLOSE",
                       "STANDBY", "ALARM", "FAULT", "DISABLE"];
@@ -299,7 +304,8 @@ Synoptic = (function () {
             var sel = selectNodes(type, name);
             var node = sel[0][0];
             var bbox = util.transformedBoundingBox(node);
-            console.log("bbox " + bbox.x + " " + bbox.y + " " + bbox.width + " " + bbox.height);
+            console.log("bbox " + bbox.x + " " + bbox.y + " " +
+                        bbox.width + " " + bbox.height);
             view.moveToBBox(bbox, 200, 0.25);
         };
         
@@ -334,6 +340,8 @@ Synoptic = (function () {
             // console.log("handleEvent " + event);
             handleAttributeEvent(JSON.parse(event));
         }
+
+        this.setState = setState;
         
         // // preheat the getBBox cache (takes a few seconds)
         // svg.selectAll(".device, .attribute, .section")

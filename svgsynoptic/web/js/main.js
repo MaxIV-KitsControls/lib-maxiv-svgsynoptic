@@ -49,7 +49,7 @@ window.addEventListener("load", function () {
 
     // Load the actual SVG into the page
     function load (svg, section) {
-        console.log("load", svg);
+        console.log("load " + svg);
         d3.xml(svg, "image/svg+xml", function(xml) {
             var svg = d3.select(document.importNode(xml.documentElement, true));
             d3.ns.prefix.inkscape = "http://www.inkscape.org/namespaces/inkscape";
@@ -58,6 +58,7 @@ window.addEventListener("load", function () {
             main(svg);
         });
     }
+    window.load = load;
 
     function sanitizeSVG (svg) {
 
@@ -162,7 +163,7 @@ window.addEventListener("load", function () {
     }
 
 
-    load("images/maxiv.svg");
+    // load("images/maxiv.svg");
 
     //main(synoptify(draw(ring3)));
 

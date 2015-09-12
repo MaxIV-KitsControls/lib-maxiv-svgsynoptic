@@ -5,6 +5,7 @@ various areas to zoom in.
 """
 
 import logging
+import os
 
 from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtWebKit import QWebPage, QWebView
@@ -46,7 +47,7 @@ class SynopticWidget(QtGui.QWidget):
         self._setup_ui(url)
 
     def _setup_ui(self, url=None, section=None):
-        hbox = QtGui.QHBoxLayout(self)
+        self.hbox = hbox = QtGui.QHBoxLayout(self)
         hbox.setContentsMargins(0, 0, 0, 0)
         hbox.layout().setContentsMargins(0, 0, 0, 0)
         if url:
@@ -57,9 +58,10 @@ class SynopticWidget(QtGui.QWidget):
     def set_url(self, url):
         # TODO: probably breaks things if the url is already set
         self._url = url
-        self._create_view(url)
+        print "set_url", url
+        self.hbox.addWidget(self._create_view(url))
 
-    def _create_view(self, html, section=None):
+    def _create_view(self, svg, html=None, section=None):
         "Create the webview that will display the synoptic itself"
         view = QWebView(self)
 
@@ -72,7 +74,11 @@ class SynopticWidget(QtGui.QWidget):
         view.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
 
         # the HTML page that will contain the SVG
-        html = QtCore.QUrl(html)
+        # Can be overridden if needed. TODO: find a cleaner way
+        if html:
+            html = QtCore.QUrl(html)
+        else:
+            html = QtCore.QUrl(os.path.dirname(__file__) + "/web/local.html")
 
         # setup the JS interface
         frame = view.page().mainFrame()
@@ -89,11 +95,9 @@ class SynopticWidget(QtGui.QWidget):
         # Inject JSInterface into the JS global namespace as "Widget"
         frame.addToJavaScriptWindowObject('Widget', self.js)  # confusing?
 
-        # def zoom():
-        #     if section:
-        #         self.js.evaluate("synoptic.zoomTo('section', %r);"  % section)
-
-        #view.loadFinished.connect(zoom)  # zoom to the optional element
+        # After the page has loaded, load the SVG itself into it
+        view.loadFinished.connect(
+            lambda: self.js.evaluate('load(%r)' % svg))
 
         # load the page
         view.load(html)
