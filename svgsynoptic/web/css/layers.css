@@ -1,0 +1,30 @@
+div.layer-toggles {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: table-row;
+    padding: 3px;
+    border-spacing: 10px;
+}
+
+div.layer-toggle.hidden {
+    background: grey;
+}
+
+div.layer-toggle {
+    background: black;
+    color: white;
+    display: table-cell;
+    padding: 3px 6px;
+}
+
+
+svg .layer.togglable.hidden {
+    display: none;
+    pointer-events: none;
+}
+
+svg .layer.togglable {
+    display: inline;
+    pointer-events: auto;
+}

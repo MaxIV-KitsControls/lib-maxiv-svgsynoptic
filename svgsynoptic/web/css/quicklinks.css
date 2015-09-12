@@ -1,0 +1,31 @@
+div.quicklinks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: table-row;
+    /* border-spacing: 2px; */
+}
+
+div.quicklink.hidden {
+    background: grey;
+}
+
+div.quicklink {
+    color: black;
+    display: table-cell;
+    padding: 3px 4px;
+    cursor: pointer;
+}
+
+div.quicklink:nth-child(even) {
+    background: #aaa;    
+}
+
+div.quicklink:nth-child(odd) {
+    background: #ccc;
+}    
+
+div.quicklink:hover {
+    background: black;
+    color: white;
+}
