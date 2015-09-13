@@ -9,6 +9,8 @@ window.addEventListener("load", function () {
     function main (svg, config) {
 
         var container = document.getElementById("view");
+
+        console.log("config "  + JSON.stringify(config));
         synoptic = new Synoptic(container, svg, config);
 
         // Mouse interaction

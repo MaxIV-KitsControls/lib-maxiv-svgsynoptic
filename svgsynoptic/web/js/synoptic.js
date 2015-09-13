@@ -3,6 +3,8 @@ Synoptic = (function () {
     // This represents the whole "synoptic" widget and all interactions
     function Synoptic (container, svg, config) {
 
+        console.log(JSON.stringify(config));
+        
         config = config || {};
         
         // the View takes care of the basic navigation; zooming,
@@ -18,6 +20,11 @@ Synoptic = (function () {
 
         var layers = new LayerTogglers(container, svg);
         layers.addCallback(function () {updateVisibility();});
+
+        var tooltip = new Tooltip(container, svg);
+        tooltip.addCallback(function (model) {
+            fireEventCallbacks("tooltip", model)
+        });
         
         // var quicklinks = new QuickLinks(container, svg, function (section) {return section.split("-")[1];});
         // //quicklinks.addCallback("click", functionconsole.log()); 
@@ -70,7 +77,8 @@ Synoptic = (function () {
             // likely to be a bug in older webkit versions.
 
             // leftclick
-            svg.selectAll(".section, .model")
+            svg
+                .selectAll(".section, .model")
                 .on("click", function (d) {
                     if (d3.event.defaultPrevented) return;
                     // Only makes sense to click items with data
@@ -83,40 +91,6 @@ Synoptic = (function () {
                     return false;
                 })
             // hover -> tooltip
-                .on("mouseover", showTooltip)
-                .on("mousemove", moveTooltip)
-                .on("mouseout", closeTooltip);
-        }
-
-        var tooltip, tooltipUpdater;
-
-        function updateTooltip(model) {
-            fireEventCallbacks("tooltip", model);
-        }
-
-        function showTooltip(data) {
-            if (this.getAttribute("id")) {
-                if (tooltip)
-                    tooltip.close();
-                tooltip = new Tooltip(container, getNodeId(data), data);
-                tooltip.update(data);
-                tooltip.move();
-                fireEventCallbacks("tooltip", data.model)
-            }
-        }
-
-        function moveTooltip(data) {
-            if (tooltip && getNodeId(data) == tooltip.id) {
-                tooltip.move();
-            }
-        }
-
-        function closeTooltip(data) {
-            if (tooltip && getNodeId(data) == tooltip.id) {
-                tooltip.close();
-                delete tooltip;
-                fireEventCallbacks("tooltip", []);
-            }
         }
 
         setupMouse();
@@ -291,7 +265,7 @@ Synoptic = (function () {
 
         this.setTooltipHTML = function (model, html) {
             console.log("setToolTioHTMO " + model + " " + html);
-            tooltip && tooltip.setHTML(model, html);
+            tooltip && tooltip.setHTML(html);
         }
         
         // // preheat the getBBox cache (may take a few seconds)

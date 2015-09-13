@@ -1,6 +1,5 @@
 /*
-The View is an interactive container for an SVG document.  It allows
-the used to zoom and pan freely using the mouse.
+The View is an interactive container for an SVG document.  
 
 It can be configured to switch between detail levels in the document
 depending on the current zoom level.
@@ -20,8 +19,7 @@ var View = (function () {
            when fully zoomed out, showing the whole picture.  The end
            points of zoomSteps also limits user zooming.  If the
            number of steps is smaller than the number of zoom levels
-           in the SVG, those higher zoom levels will not be visible.
-        */
+           in the SVG, those higher zoom levels will not be visible. */
         zoomSteps = config.zoomSteps || [1, 10, 100];
         var maxZoom = zoomSteps.slice(-1)[0];
 
