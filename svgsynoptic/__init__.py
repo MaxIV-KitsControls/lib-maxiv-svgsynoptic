@@ -1,0 +1,2 @@
+from synopticwidget import SynopticWidget
+from taurussynopticwidget import TaurusSynopticWidget
