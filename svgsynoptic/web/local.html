@@ -31,6 +31,20 @@
   <script src="js/ringdata.js"></script>
   <script src="js/main.js"></script>
 
+  <script type="text/javascript">
+    // Here we need to kick things off by providing a SVG file
+    // for the synoptic. 
+    window.addEventListener("load", function () {
+        // loadSVG is a convenience method for loading a file.
+        // Path may be relative to this HTML file or absolute.
+        loadSVG("images/maxiv_model.svg");
+
+        // It's also possible to e.g. generate SVG dynamically
+        // using JS and then start the synoptic:
+        // loadElement(your_svg_element);
+    });
+  </script>
+  
 </body>
 
 </html>

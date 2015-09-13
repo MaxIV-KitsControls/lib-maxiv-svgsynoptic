@@ -1,40 +1,40 @@
-svg .status-UNKNOWN {
+svg .updated.status-UNKNOWN {
     stroke: white;
     fill: rgb(128,128,128);
 }
 
-svg .state-INIT {
+svg .updated.state-INIT {
     fill: rgb(204,204,122);
 }
 
-svg .state-DISABLE {
+svg .updated.state-DISABLE {
     fill: rgb(255,0,255);
 }
 
-svg .state-STANDBY {
+svg .updated.state-STANDBY {
     fill: rgb(255,255,0);
 }
 
-svg .state-ON, svg .state-OPEN, svg .state-EXTRACT {
+svg .updated.state-ON, svg .updated.state-OPEN, svg .updated.state-EXTRACT {
     stroke: #00000;
     fill: #00FF00;
 }
 
-svg .state-OFF, svg .state-CLOSE, svg .state-INSERT {
+svg .updated.state-OFF, svg .updated.state-CLOSE, svg .updated.state-INSERT {
     stroke: grey;
     fill: white;
 }
 
-svg .state-FAULT {
+svg .updated.state-FAULT {
     stroke: white !important;
     fill: red !important;
 }
 
-svg .state-RUNNING, svg .state-MOVING {
+svg .updated.state-RUNNING, svg .updated.state-MOVING {
     fill: rgb(128,160,255) !important;
 }
-
-svg .state-ALARM {
+<
+svg .updated.state-ALARM {
     stroke: white;
     fill: rgb(255,140,0) !important;
 }

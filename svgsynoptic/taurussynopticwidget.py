@@ -31,6 +31,10 @@ class TooltipUpdater(QtCore.QThread):
         except PyTango.DevFailed as e:
             print e
 
+def getStateClasses(state):
+    return dict((("state-%s" % name), s == state)
+                for name, s in PyTango.DevState.names.items())
+
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
@@ -78,8 +82,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             value = evt_value.value
             device = evt_src.getParentObj()
             if isinstance(value, PyTango._PyTango.DevState):
-                self.js.evaluate("synoptic.setState('model', %r, %r)" %
-                                 (device.name(), str(value)))
+                classes = getStateClasses(value)
+                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                                 (device.name(), json.dumps(classes)))
 
     def on_click(self, kind, name):
         """The default behavior is to mark a clicked device and to zoom to a

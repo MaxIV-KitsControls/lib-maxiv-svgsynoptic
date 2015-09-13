@@ -61,7 +61,7 @@ class SynopticWidget(QtGui.QWidget):
         print "set_url", url
         self.hbox.addWidget(self._create_view(url))
 
-    def _create_view(self, svg, html=None, section=None):
+    def _create_view(self, html=None, section=None):
         "Create the webview that will display the synoptic itself"
         view = QWebView(self)
 
@@ -75,10 +75,8 @@ class SynopticWidget(QtGui.QWidget):
 
         # the HTML page that will contain the SVG
         # Can be overridden if needed. TODO: find a cleaner way
-        if html:
-            html = QtCore.QUrl(html)
-        else:
-            html = QtCore.QUrl(os.path.dirname(__file__) + "/web/local.html")
+        html = QtCore.QUrl(html)
+        # html = QtCore.QUrl(os.path.dirname(__file__) + "/web/local.html")
 
         # setup the JS interface
         frame = view.page().mainFrame()
@@ -97,8 +95,8 @@ class SynopticWidget(QtGui.QWidget):
         frame.addToJavaScriptWindowObject('Backend', self.js)
 
         # After the page has loaded, load the SVG itself into it
-        view.loadFinished.connect(
-            lambda: self.js.evaluate('load(%r)' % svg))
+        # view.loadFinished.connect(
+        #     lambda: self.js.evaluate('loadSVG(%r)' % svg))
 
         # load the page
         view.load(html)

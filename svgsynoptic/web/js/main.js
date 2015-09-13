@@ -37,6 +37,8 @@ window.addEventListener("load", function () {
 
     }
 
+    window.runSynoptic = main;
+
     // send the list of visible things to the backend whenever
     // it changes.
     var oldSubs = "";
@@ -62,7 +64,7 @@ window.addEventListener("load", function () {
             main(svg);
         });
     }
-    window.load = load;
+    window.loadSVG = load;
 
     function sanitizeSVG (svg) {
 
@@ -156,7 +158,6 @@ window.addEventListener("load", function () {
                     .datum(data);
 
             });;
-
     }
 
     d3.selection.prototype.size = function() {
@@ -166,6 +167,10 @@ window.addEventListener("load", function () {
     };
     // load("images/maxiv.svg");
 
-    //main(synoptify(draw(ring3)));
+    window.loadElement = function (svg) {
+        synoptify(svg);
+    }
+    
+    // runSynoptic(draw(ring3));
 
 });

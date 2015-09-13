@@ -134,51 +134,11 @@ Synoptic = (function () {
 
         /********** Tango events **********/
 
-        function setState(type, name, state) {
+        function setClasses(type, name, classes) {
             selectNodes(type, name)
-                .classed(getStateClasses(state));
-        }
-        
-        var states = ["UNKNOWN", "INIT", "RUNNING", "MOVING",
-                      "ON", "OFF", "INSERT", "EXTRACT", "OPEN", "CLOSE",
-                      "STANDBY", "ALARM", "FAULT", "DISABLE"];
-
-        function getStateClasses(state) {
-            var classes = {};
-            states.forEach(function (s) {
-                classes["state-" + s] = s == state;
-            });
-            return classes;
-        };
-
-        var no_state_classes = getStateClasses();
-
-        // function handleAttributeEvent (event) {
-        //     var classes;
-        //     var sel = selectNodes("attribute", event.model);
-        //     if (event.event_type == "value") {
-        //         if (event.type == "DevState") {
-        //             classes = getStateClasses(event.html);
-        //             sel.classed(classes);
-        //             var devicename = event.model.split("/").slice(0, -1).join("/");
-        //             selectNodes("device", devicename)
-        //                 .classed(classes);
-        //         } else if (event.type == "DevBoolean") {
-        //             var value = parseFloat(event.html) !== 0.0;
-        //             classes = {"boolean-true": value, "boolean-false": !value};
-        //             sel.classed(classes);
-        //         } else {
-        //             // TODO: printf?
-        //             sel.text(event.html + (event.unit? " " + event.unit : ""));
-        //         }
-        //     }
-        //     if (tooltip) {
-        //         if (getNodeId(event) == tooltip.id) {
-        //             tooltip.update(event);
-        //         }
-        //     }
-        // };
-
+                .classed(classes)
+                .classed("updated", true);
+        }        
 
         /********** Visibility **********/
 
@@ -277,7 +237,8 @@ Synoptic = (function () {
                     return !isInView(getBBox("model", d.model[0]), vbox);
                 })
                 .classed("hidden", true)
-                .classed(no_state_classes);  // remove state info
+                .classed("updated", false);
+                //.classed(no_state_classes);  // remove state info
 
             sel  // show things that are in view
                 .filter(function (d) {
@@ -323,18 +284,9 @@ Synoptic = (function () {
             svg.selectAll("circle.selection").remove();
         };
 
-
-        // this.handleEvents = function (events) {
-        //     //events = JSON.parse(events);
-        //     events.forEach(handleAttributeEvent);
-        // };
-
-        // this.handleEvent = function (event) {
-        //     // console.log("handleEvent " + event);
-        //     handleAttributeEvent(JSON.parse(event));
-        // }
-
-        this.setState = setState;
+        this.setClasses = function (type, name, classes) {
+            setClasses(type, name, classes);
+        };
 
         this.setTooltipHTML = function (model, html) {
             console.log("setToolTioHTMO " + model + " " + html);
