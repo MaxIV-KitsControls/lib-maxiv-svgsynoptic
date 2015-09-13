@@ -98,6 +98,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         elif kind == "section":
             self.zoom_to(kind, name)
 
+    def get_device_panel(self, device):
+        """Override to change which panel is opened for a given
+        device name. Return a widget class, or None if you're
+        handling the panel yourself"""
+        return TaurusDevicePanel
+
     def on_rightclick(self, kind, name):
         """We'll try to open a generic Taurus panel for a clicked
         device. Override this for more custom behavior!"""
@@ -108,12 +114,17 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                     widget.show()
                 widget.activateWindow()
                 widget.raise_()
-            else:
-                widget = TaurusDevicePanel()
-                widget.setModel(name)
-                widget.closeEvent = lambda _: self._cleanup_panel(widget)
-                self._panels[name] = widget
-                widget.show()
+                return
+
+            # check if we recognise the class of the device
+            panel_class = self.get_device_panel(name)
+            if not panel_class:
+                return
+            widget = panel_class()
+            widget.setModel(name)
+            widget.closeEvent = lambda _: self._cleanup_panel(widget)
+            self._panels[name] = widget
+            widget.show()
 
     def _cleanup_panel(self, w):
         """In the long run it seems like a good idea to try and clean up
