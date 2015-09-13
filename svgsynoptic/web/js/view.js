@@ -11,11 +11,19 @@ virwpoint to a given item, etc.
 
 var View = (function () {
 
-    function View (element, svg, zoomSteps) {
+    function View (element, svg, config) {
 
-        zoomSteps = zoomSteps || [1, 30, 100];
+        /* config.zoomSteps is a list of numbers. The first number
+           determines at which scale (relative to full view) we switch
+           from detail level 0 to 1, and so on. Setting the first
+           number to 1 means that the lowest detail level is only used
+           when fully zoomed out, showing the whole picture.  The end
+           points of zoomSteps also limits user zooming.  If the
+           number of steps is smaller than the number of zoom levels
+           in the SVG, those higher zoom levels will not be visible.
+        */
+        zoomSteps = config.zoomSteps || [1, 10, 100];
         var maxZoom = zoomSteps.slice(-1)[0];
-        console.log("maxZoom " + maxZoom);
 
         var svgMain = svg.select("#svg-main"),
             changeCallbacks = [];
@@ -33,13 +41,13 @@ var View = (function () {
             /* This is a primitive way to switch zoom level.
                Can't see a way to make this completely general
                so for now it must be configured manually. */
-
             for(var i = 0; i<zoomSteps.length; i++) {
                 var z = zoomSteps[i];
                 if (z >= relScale) {
                     zoomLevel = i;
                     break;
                 }
+                zoomLevel = i;  // never go beyond the highest level
             }
 
             if (zoomLevel != oldZoomLevel) {
@@ -79,7 +87,7 @@ var View = (function () {
         
         var zoom = d3.behavior.zoom()
                 //.inertia(true)   // maybe d3 v3.6?
-                .scaleExtent([scale0, 100*scale0])
+                .scaleExtent([scale0, scale0*maxZoom])
                 .on("zoom", zoomed);
 
         svg.call(zoom);
@@ -153,7 +161,7 @@ var View = (function () {
             zoom.scale(newScale)
                 .translate([oldTrans[0] * newScale / oldScale,
                             oldTrans[1] * newScale / oldScale])
-                .scaleExtent([scale0, 100*scale0]);
+                .scaleExtent([scale0, maxZoom*scale0]);
             zoom.event(svg);
         }
         window.addEventListener("resize", updateSize);

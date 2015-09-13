@@ -70,12 +70,13 @@ class SynopticWidget(QtGui.QWidget):
         view.settings().TiledBackingStoreEnabled = True
         view.setRenderHint(QtGui.QPainter.TextAntialiasing, False)
 
-        view.setPage(LoggingWebPage())
+        page = LoggingWebPage()
+        view.setPage(page)
         view.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
 
         # the HTML page that will contain the SVG
         # Can be overridden if needed. TODO: find a cleaner way
-        html = QtCore.QUrl(html)
+        #html = QtCore.QUrl(html)
         # html = QtCore.QUrl(os.path.dirname(__file__) + "/web/local.html")
 
         # setup the JS interface
@@ -99,7 +100,13 @@ class SynopticWidget(QtGui.QWidget):
         #     lambda: self.js.evaluate('loadSVG(%r)' % svg))
 
         # load the page
-        view.load(html)
+        #view.load(html)
+        base_url = QtCore.QUrl().fromLocalFile(os.path.dirname(__file__) + "/web/")
+        print base_url
+        abspath = os.path.dirname(os.path.abspath(html))
+        with open(html) as f:
+            text = f.read().replace("${path}", abspath)  # TODO: use template
+            view.setHtml(text, base_url)
 
         return view
 

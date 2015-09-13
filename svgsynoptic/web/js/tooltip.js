@@ -14,7 +14,7 @@ Tooltip = (function () {
         this.update = function (data) {
             console.log(JSON.stringify(data));
             tooltip.html('<div class="model">' +
-                         (this.data.model || this.data.section) + "</div>");
+                         (this.data.section || this.data.model) + "</div>");
         };
 
         this.setHTML = function (model, html) {

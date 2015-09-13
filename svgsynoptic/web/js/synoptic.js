@@ -1,11 +1,13 @@
 Synoptic = (function () {
 
     // This represents the whole "synoptic" widget and all interactions
-    function Synoptic (container, svg) {
+    function Synoptic (container, svg, config) {
 
+        config = config || {};
+        
         // the View takes care of the basic navigation; zooming,
         // panning etc, and switching between detail levels.
-        var view = new View(container, svg, [1, 10, 100]);
+        var view = new View(container, svg, config.view);
         
         // whenever the user zooms or pans the view, we need to update the
         // listeners etc. But since this is a pretty expensive and slow
@@ -123,7 +125,9 @@ Synoptic = (function () {
             var node = selectNodes("model", model).node(),
                 bbox = getBBox("model", model);
 
-            console.log("selectModel " + model + " " + bbox.x + " " + bbox.y + " " + bbox.width + " " + bbox.height)
+            console.log("selectModel " + model + " " +
+                        bbox.x + " " + bbox.y + " " +
+                        bbox.width + " " + bbox.height)
             d3.select(node.parentNode)
                 .insert("svg:circle", ":first-child")
                 .attr("cx", bbox.x + bbox.width/2)
@@ -182,10 +186,8 @@ Synoptic = (function () {
 
 
         function _getBBox (type, name) {
-            console.log("_getBBox " + type +","+ name);
             try {     
                 var node = selectNodes(type, name).node();
-                console.log("node " + node);
                 var bbox = util.transformedBoundingBox(node);
                 // var bbox = node.getBoundingClientRect();
                 return bbox;
@@ -210,7 +212,9 @@ Synoptic = (function () {
 
         // Hmm... this does not quite work
         function selectHiddenThings() {
-            return svg.selectAll("g.layer.hidden .model, g.zoom.hidden > .model");
+            return svg.selectAll(
+                "g.layer.hidden .model, g.zoom.hidden > .model"
+            );
         }
 
         function fireSubscribeCallbacks(sel) {
@@ -238,15 +242,12 @@ Synoptic = (function () {
                 })
                 .classed("hidden", true)
                 .classed("updated", false);
-                //.classed(no_state_classes);  // remove state info
 
             sel  // show things that are in view
                 .filter(function (d) {
                     return isInView(getBBox("model", d.model[0]), vbox);
                 })
                 .classed("hidden", false)  // then activate visible ones
-                // if it's an attribute, subscribe to it
-                //.filter(function (d) {return d && d.attribute;})
                 .call(fireSubscribeCallbacks);
 
             // TODO: pretty inefficient to run isInView twice for every

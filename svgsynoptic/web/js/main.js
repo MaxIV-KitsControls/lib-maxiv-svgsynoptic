@@ -6,10 +6,10 @@ window.addEventListener("load", function () {
        may be a Qt widget or an ajax bridge; from here it all
        works the same, the API should be identical. */
     
-    function main (svg) {
+    function main (svg, config) {
 
         var container = document.getElementById("view");
-        synoptic = new Synoptic(container, svg);
+        synoptic = new Synoptic(container, svg, config);
 
         // Mouse interaction
         synoptic.addEventCallback(
@@ -54,29 +54,43 @@ window.addEventListener("load", function () {
     }
 
     // Load the actual SVG into the page
-    function load (svg, section) {
+    function load (svg, config) {
         console.log("load " + svg);
         d3.xml(svg, "image/svg+xml", function(xml) {
             var svg = d3.select(document.importNode(xml.documentElement, true));
             d3.ns.prefix.inkscape = "http://www.inkscape.org/namespaces/inkscape";
             sanitizeSVG(svg);
             activateSVG(svg);
-            main(svg);
+            main(svg, config);
         });
     }
     window.loadSVG = load;
 
+    function loadString (svgString) {
+        console.log("loadString")
+        var tmp = document.createElement("div");
+        tmp.innerHTML = svgString;
+        d3.ns.prefix.inkscape = "http://www.inkscape.org/namespaces/inkscape";
+        svg = d3.select(tmp).select("svg");
+        sanitizeSVG(svg);
+        activateSVG(svg);
+        main(svg);
+    }
+    window.loadSVGString = loadString;
+    
     function sanitizeSVG (svg) {
 
         // Setup all the layers that should be user selectble
         var layers = svg.selectAll("svg > g > g")
-                .filter(function () {
-                    return d3.select(this).attr("inkscape:groupmode") == "layer";})
-                .attr("id", function () {
-                    return d3.select(this).attr("inkscape:label");})  // ugh
-                .attr("display", null)
-                .style("display", null);
-
+            .filter(function () {
+                console.log("sanitix " + d3.select(this).attr("inkscape:groupmode"));
+                return d3.select(this).attr("inkscape:groupmode") == "layer";})
+            .attr("id", function () {
+                //console.log("sanitix " + d3.select(this).attr("inkscape:label"));
+                return d3.select(this).attr("inkscape:label");})  // ugh
+            .attr("display", null)
+            .style("display", null);
+        
         // Set which layers are selectable
         // TODO: find a better way to do this; it relies on inkscape
         // specific tags and hardcoding layer names is not nice either!
@@ -128,6 +142,7 @@ window.addEventListener("load", function () {
         // Here we might also do some checking on the supplied SVG
         // file so that it has the right format etc, and report
         // problems back.
+
     }
 
     function activateSVG (svg) {
@@ -145,14 +160,13 @@ window.addEventListener("load", function () {
                 lines.forEach(function (line) {
                     var match = pattern.exec(line);
                     if (match) {
-                        var kind = match[1].trim(),  
+                         var kind = match[1].trim(),  
                             name = match[2].trim();
                         data[kind] = name.split(",");
-                        console.log(kind + " " + name + " " + data[kind])
                         classes[kind] = true;
                     }
                 }, this);
-                console.log(classes);
+
                 d3.select(this.parentNode)
                     .classed(classes)
                     .datum(data);
