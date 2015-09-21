@@ -18,7 +18,7 @@ Synoptic = (function () {
         view.addCallback(
             _.debounce(updateVisibility, 500, {leading: false}));
 
-        var layers = new LayerTogglers(container, svg);
+        var layers = new LayerTogglers(container, svg, config.layers);
         layers.addCallback(function () {updateVisibility();});
 
         var tooltip = new Tooltip(container, svg);

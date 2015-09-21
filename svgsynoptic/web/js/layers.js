@@ -5,7 +5,7 @@
 
 LayerTogglers = (function () {
 
-    function _LayerTogglers (container, svg) {
+    function _LayerTogglers (container, svg, config) {
 
         var togglable = svg.selectAll(".layer.togglable");
 
@@ -29,14 +29,20 @@ LayerTogglers = (function () {
             callbacks.push(cb);
         };
 
-        function toggleLayer (layername, div) {
-            var shown = !div.classList.contains("hidden");
-            node.select("div.layer-toggle." + layername)
-                .classed("hidden", shown);
+        function toggleLayer (layername) {
+            var button = node.select("div.layer-toggle." + layername),
+                shown = !button.node().classList.contains("hidden");
+            button.classed("hidden", shown);
             svg.select("#" + layername)
                 .classed("hidden", shown);
             callbacks.forEach(function (cb) {cb(layername, shown);});
         };
+
+        config.hidden.forEach(function (layername) {
+            if (config.hidden.indexOf(layername) != -1)
+                toggleLayer(layername);
+        });
+        
     }
 
     return _LayerTogglers;
