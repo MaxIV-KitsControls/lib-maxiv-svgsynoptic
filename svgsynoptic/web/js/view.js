@@ -23,7 +23,9 @@ var View = (function () {
         zoomSteps = config.zoomSteps || [1, 10, 100];
         var maxZoom = zoomSteps.slice(-1)[0];
 
-        var svgMain = svg.select("#svg-main"),
+        // assume everything is contained in one toplevel group
+        // TODO: is this really necessary?
+        var svgMain = svg.select("g"),
             changeCallbacks = [];
 
         var width = parseInt(svg.attr("width")),
