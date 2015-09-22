@@ -180,6 +180,7 @@ Synoptic = (function () {
         // shown layers and zoom levels.
         function selectShownThings() {
             return svg.selectAll(
+                "g.layer:not(.hidden) > .model, " +
                 "g.layer:not(.hidden) > g.zoom:not(.hidden) > .model"
             );
         }
@@ -260,11 +261,16 @@ Synoptic = (function () {
         };
 
         this.setClasses = function (type, name, classes) {
+            console.log("setClasses " + name + " " + Object.keys(classes).filter(function (m) {return classes[m]}).join(", "));
             setClasses(type, name, classes);
         };
 
+        this.setHTML = function (type, name, html) {
+            selectNodes(type, name)
+                .html(html);
+        }
+        
         this.setTooltipHTML = function (model, html) {
-            console.log("setToolTioHTMO " + model + " " + html);
             tooltip && tooltip.setHTML(html);
         }
         
