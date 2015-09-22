@@ -1,76 +1,50 @@
 Tooltip = (function () {
 
-    var element;
 
     
-    function Tooltip(container, svg) {
-        element = d3.select(container)
-            .append("div")
-            .classed("tooltip", true);
-        
-        element
-            .append("div")
-            .classed("model", true)
-        
-        element
-            .append("div")
-            .classed("info", true);
-
-        svg.selectAll(".section, .model")
-            .on("mouseover", updateTooltip.bind(null, true))
-            .on("mousemove", positionTooltip)
-            .on("mouseout", updateTooltip.bind(null, false));
-    }
-
-    Tooltip.prototype.setHTML = function (html) {
-        console.log("***********")
-        element.select(".info")
-            .html(html);
-    }
-
-    var callback;
-    Tooltip.prototype.addCallback = function (cb) {
-        callback = cb;
-    }
     
-    var currentModel;
-    
-    function _updateTooltip(show, data) {
-        if (show) {
-            if (data.model != currentModel) {
-                console.log(show + " " + data.model);
-                element.style("display", null);
+    // A simple tooltip (info box that pops up under the mouse)
+    function _Tooltip(element, nodeId, data) {
+
+        this.id = nodeId;
+        this.data = data;
+
+        var tooltip = d3.select(element)
+                .append("div")
+                .classed("tooltip", true);
+
+        this.update = function (data) {
+            console.log(JSON.stringify(data));
+            tooltip.html('<div class="model">' +
+                         (this.data.section || this.data.model) + "</div>");
+        };
+
+        this.setHTML = function (model, html) {
+            if (model == this.data.model) {
+                tooltip.html('<div class="model">' + this.data.model + "</div>" +
+                             html);
             }
-            currentModel = data.model;
-            element.select(".model").text(data.model);
-            callback(data.model)
-        } else {
-            console.log("leave");
-            currentModel = null;
-            element.select(".model").text("")
-            element.select(".info").text("")
-            element.style("display", "none");
-            callback([]);
-        }   
-    }
-
-    var updateTooltip = _.debounce(_updateTooltip, 100, {leading: false});
-    
-    function positionTooltip(data) {
-        if (d3.event) {
-            var x = d3.event.clientX, y = d3.event.clientY;
-            console.log(x + " " + y);
-            if (x > window.innerWidth/2) {
-                element.style("left", null);
-                element.style("right", window.innerWidth - x);
-            } else {
-                element.style("left", x);
-                element.style("right", null);
-            }
-            element.style("top", y);
         }
-    }
-                                
+        
+        this.move = function () {
+            // Crude attempt to make the tooltip fit on the screen... improve!
+            if (d3.event.clientX > window.innerWidth/2) {
+                tooltip
+                    .style("left", d3.event.clientX - 10 - tooltip.node().clientWidth)
+                    .style("top", d3.event.clientY + 10);
+            } else {
+                tooltip
+                    .style("left", d3.event.clientX + 10)
+                    .style("top", d3.event.clientY + 10);
+            }
+        };
+
+        this.close = function () {
+            tooltip.remove();
+        };
+
+    };
+
     return Tooltip;
-    
+
 })();
