@@ -41,9 +41,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     """A SynopticWidget that connects to Tango in order to
     get updates for models (attributes)."""
 
+    tooltip_trigger = QtCore.pyqtSignal(str)
+
     def __init__(self, parent=None, **kwargs):
-        super(self.__class__, self).__init__(parent=parent)
+        super(TaurusSynopticWidget, self).__init__(parent=parent)
         Manager().setSerializationMode(TaurusSerializationMode.Concurrent)
+        self.tooltip_trigger.connect(self._update_device_tooltip)
         self._panels = {}
 
     def setModel(self, image, section=None):
@@ -76,15 +79,17 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # evaljs complains about "SyntaxError: Expected token ')'"
         self.js.evaluate("synoptic.handleEvent(%r)" % json.dumps(event))
 
-    def _attribute_listener(self, evt_src, evt_type, evt_value):
-        if evt_type in (PyTango.EventType.CHANGE_EVENT,
-                        PyTango.EventType.PERIODIC_EVENT):
-            value = evt_value.value
-            device = evt_src.getParentObj()
-            if isinstance(value, PyTango._PyTango.DevState):
-                classes = getStateClasses(value)
-                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
-                                 (device.name(), json.dumps(classes)))
+    def _attribute_listener(self, model, attr_value):
+        value = attr_value.value
+        if isinstance(value, PyTango._PyTango.DevState):
+            classes = getStateClasses(value)
+            device, attr = model.rsplit("/", 1)
+            self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                             (device, json.dumps(classes)))
+            self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
+                             (device, json.dumps(classes)))
+        else:
+            self.js.evaluate("synoptic.setHTML('model', %r, %r)" % model, value)
 
     def on_click(self, kind, name):
         """The default behavior is to mark a clicked device and to zoom to a
@@ -148,7 +153,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     #     self.js.evaluate('synoptic.setTooltipHTML("%s", %s)' % (model, html))
 
     def on_tooltip(self, models):
-        print "on_tooltip", models
+        # FIXME: looks like tooltip listeners aren't cleaned up until a new
+        # tooltip is displayed. This seems wasteful.
         if models:
             all_models = []
             for model in models:
@@ -163,33 +169,23 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.tooltip_registry.subscribe()
             self._tooltip_data.clear()
 
-        print "Tooltip listeners:", self._tooltip_data
-
-    def _tooltip_updater(self, evt_src, evt_type, evt_value):
-        if evt_type in (PyTango.EventType.CHANGE_EVENT,
-                        PyTango.EventType.PERIODIC_EVENT):
-            value = evt_value.value
-            model = evt_src.getNormalName()
-            device, attr = model.rsplit("/", 1)
-            if attr in ("State", "Status"):
-                self._tooltip_data[device][attr] = value
-                dev = evt_src.getParentObj()
-                info = dev.getHWObj().info()
-                print info
-                self._tooltip_data[device]["Class"] = info.dev_class
-                # self._tooltip_data.setdefault("Class", device.)
-                self._update_device_tooltip(device)
-            else:
-                self._tooltip_data[model] = evt_value
-
-            # html = json.dumps('Value:&nbsp;' +
-            #                   '<span class="value">%s</span>'
-            #                   % value)
-            # self.js.evaluate('synoptic.setTooltipHTML("%s", %s)' %
-            #                  (model, html))
+    def _tooltip_updater(self, model, attr_value):
+        value = attr_value.value
+        device, attr = model.rsplit("/", 1)
+        if attr in ("State", "Status"):
+            if attr == "Status":
+                # hack to keep newlines
+                value = value.replace("\n", "<br>")
+            self._tooltip_data.setdefault(device, {})[attr] = value
+            #dev = evt_src.getParentObj()
+            #info = dev.getHWObj().info()
+            # self._tooltip_data[device]["Class"] = info.dev_class
+            self.tooltip_trigger.emit(device)
+        else:
+            self._tooltip_data[model] = value
 
     def _update_device_tooltip(self, device):
-        # TODO: this is pretty flaky...
+        # TODO: redo this in a neat way.
         data = {"Class": "...", "State": "...", "Status": "..."}
         data.update(self._tooltip_data[device])
         html = json.dumps(
@@ -202,7 +198,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     def closeEvent(self, event):
         # Get rid of all opened panels, otherwise the application will
         # not exit cleanly.
-        super(self.__class__, self).closeEvent(event)
+        super(TaurusSynopticWidget, self).closeEvent(event)
         for model, panel in self._panels.items():
             print "closing panel for", model
             panel.close()
