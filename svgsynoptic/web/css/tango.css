@@ -33,7 +33,7 @@ svg .updated.state-FAULT {
 svg .updated.state-RUNNING, svg .updated.state-MOVING {
     fill: rgb(128,160,255) !important;
 }
-<
+
 svg .updated.state-ALARM {
     stroke: white;
     fill: rgb(255,140,0) !important;
