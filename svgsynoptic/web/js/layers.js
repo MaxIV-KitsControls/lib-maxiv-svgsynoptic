@@ -1,13 +1,16 @@
 /*
  This creates the layer selector togglers that allow individual layers
- to be turned on/off
+ to be turned on/off. 
  */
 
 LayerTogglers = (function () {
 
     function _LayerTogglers (container, svg, config) {
 
+        config = config || {};
+        
         var togglable = svg.selectAll(".layer.togglable");
+                            
 
         var node = d3.select("#view")
                 .append("div")
@@ -29,6 +32,7 @@ LayerTogglers = (function () {
             callbacks.push(cb);
         };
 
+        // Toggle the layer with the given name off if it's on and vice versa
         function toggleLayer (layername) {
             var button = node.select("div.layer-toggle." + layername),
                 shown = !button.node().classList.contains("hidden");
@@ -38,10 +42,11 @@ LayerTogglers = (function () {
             callbacks.forEach(function (cb) {cb(layername, shown);});
         };
 
-        config.hidden.forEach(function (layername) {
-            if (config.hidden.indexOf(layername) != -1)
-                toggleLayer(layername);
-        });
+        if (config.hidden)
+            config.hidden.forEach(function (layername) {
+                if (config.hidden.indexOf(layername) != -1)
+                    toggleLayer(layername);
+            });
         
     }
 
