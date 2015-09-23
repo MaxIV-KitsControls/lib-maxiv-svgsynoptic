@@ -3,13 +3,13 @@ Synoptic = (function () {
     // This represents the whole "synoptic" widget and all interactions
     function Synoptic (container, svg, config) {
 
-        console.log(JSON.stringify(config));
-        
         config = config || {};
         
         // the View takes care of the basic navigation; zooming,
         // panning etc, and switching between detail levels.
         var view = new View(container, svg, config.view);
+
+        this.container = container;
         
         // whenever the user zooms or pans the view, we need to update the
         // listeners etc. But since this is a pretty expensive and slow
@@ -21,10 +21,10 @@ Synoptic = (function () {
         var layers = new LayerTogglers(container, svg, config.layers);
         layers.addCallback(function () {updateVisibility();});
 
-        var tooltip = new Tooltip(container, svg);
-        tooltip.addCallback(function (model) {
-            fireEventCallbacks("tooltip", model)
-        });
+        // var tooltip = new Tooltip(container, svg);
+        // tooltip.addCallback(function (model) {
+        //     fireEventCallbacks("tooltip", model)
+        // });
         
         // var quicklinks = new QuickLinks(container, svg, function (section) {return section.split("-")[1];});
         // //quicklinks.addCallback("click", functionconsole.log()); 
@@ -39,9 +39,9 @@ Synoptic = (function () {
                                       (d[type].indexOf(name) != -1);});
         }
 
-        function getNodeId (data) {
-            return data.model + "+" + data.section;
-        }
+        // function getNodeId (data) {
+        //     return data.model[0] + "+" + data.section;
+        // }
 
         /********** Input events **********/
 
@@ -51,13 +51,14 @@ Synoptic = (function () {
             "contextmenu": [],
             "subscribe": [],
             "unsubscribe": [],
-            "tooltip": []
+            "hover": []
         };
 
         // run any registered callbacks for a given event and item type
         function fireEventCallbacks(eventType, data) {
             console.log("fireEventCallbacks " + eventType);
-            listeners[eventType].forEach(function (cb) {cb(data);});
+            if (listeners[eventType])
+                listeners[eventType].forEach(function (cb) {cb(data);});
         }
 
         function getTypeFromData(el) {
@@ -90,7 +91,14 @@ Synoptic = (function () {
                     if (d) fireEventCallbacks("contextmenu", d);
                     return false;
                 })
-            // hover -> tooltip
+            // hover            
+                .on("mouseover", function (d) {
+                    if (d) fireEventCallbacks("hover", d);
+                })
+                .on("mouseout", function (d) {
+                    if (d) fireEventCallbacks("hover", null);
+                })
+
         }
 
         setupMouse();
@@ -166,7 +174,7 @@ Synoptic = (function () {
                 // var bbox = node.getBoundingClientRect();
                 return bbox;
             } catch (e) {
-                console.log(e)
+                console.log(type + " " + name + " " + e);
                 // This probably means that the element is not displayed.
                 // return {x: node.getAttribute("x"),
                 //         y: node.getAttribute("y"),
@@ -213,6 +221,7 @@ Synoptic = (function () {
 
             sel  // hide things that are out of view
                 .filter(function (d) {
+                    console.log("model " + d.model[0]);
                     return !isInView(getBBox("model", d.model[0]), vbox);
                 })
                 .classed("hidden", true)
@@ -266,12 +275,21 @@ Synoptic = (function () {
         };
 
         this.setHTML = function (type, name, html) {
-            selectNodes(type, name)
-                .html(html);
+            selectNodes(type, name).html(html);
+        }
+
+        this.showTooltip = function () {
+            console.log("showTooltip")
+            this.tooltip = new Tooltip(this.container);
+        }
+
+        this.hideTooltip = function () {
+            this.tooltip.close();
+            this.tooltip = null;
         }
         
-        this.setTooltipHTML = function (model, html) {
-            tooltip && tooltip.setHTML(html);
+        this.setTooltipHTML = function (html) {
+            this.tooltip.setHTML(html);
         }
         
         // // preheat the getBBox cache (may take a few seconds)

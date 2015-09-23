@@ -17,19 +17,28 @@ window.addEventListener("load", function () {
         synoptic.addEventCallback(
             "click", function (data) {
                 if (R.has("section", data))
-                    Backend.left_click("section", data.section);
+                    Backend.left_click("section", data.section[0]);
                 if (R.has("model", data))
-                    Backend.left_click("model", data.model);
+                    Backend.left_click("model", data.model[0]);
             });
         synoptic.addEventCallback(
             "contextmenu", function (data) {
                 if (R.has("model", data))
-                    Backend.right_click("model", data.model);
+                    Backend.right_click("model", data.model[0]);
             });
 
         synoptic.addEventCallback(
-            "tooltip", function (models) {
-                Backend.subscribe_tooltip(models && models.join(","));
+            "hover", function (data) {
+                if (!data) {
+                    // mouse has left something
+                    Backend.hover("", "");
+                } else {
+                    // mouse has entered something
+                    var models = data.model && data.model.join("\n") || "",
+                        section = data.section || "";
+                    console.log("hover " + section + " - " + models);
+                    Backend.hover(section, models);
+                }
             });
         
         // Event subscription updates
@@ -48,7 +57,7 @@ window.addEventListener("load", function () {
         var newSubs = R.pluck("model", subs);
         console.log("subscribe " + newSubs);
         newSubs.sort();
-        newSubs = newSubs.join(",");
+        newSubs = newSubs.join("\n");
         if (newSubs != oldSubs) {
             Backend.subscribe(newSubs); 
             oldSubs = newSubs;
@@ -162,9 +171,15 @@ window.addEventListener("load", function () {
                 lines.forEach(function (line) {
                     var match = pattern.exec(line);
                     if (match) {
-                         var kind = match[1].trim(),  
+                        var kind = match[1].trim(),  
                             name = match[2].trim();
-                        data[kind] = name.split(",");
+                        if (data[kind]) {
+                            console.log(kind + " " + name)
+                            data[kind].push(name);
+                        } else {
+                            console.log("flepp " + name)
+                            data[kind] = [name];
+                        }
                         classes[kind] = true;
                     }
                 }, this);

@@ -32,6 +32,7 @@ class TooltipUpdater(QtCore.QThread):
             print e
 
 def getStateClasses(state):
+    "Return a state CSS class configuration"
     return dict((("state-%s" % name), s == state)
                 for name, s in PyTango.DevState.names.items())
 

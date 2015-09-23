@@ -1,32 +1,16 @@
-Tooltip = (function () {
+var Tooltip = (function () {
 
-
-    
     
     // A simple tooltip (info box that pops up under the mouse)
-    function _Tooltip(element, nodeId, data) {
-
-        this.id = nodeId;
-        this.data = data;
+    function _Tooltip(element) {
 
         var tooltip = d3.select(element)
-                .append("div")
-                .classed("tooltip", true);
-
-        this.update = function (data) {
-            console.log(JSON.stringify(data));
-            tooltip.html('<div class="model">' +
-                         (this.data.section || this.data.model) + "</div>");
-        };
-
-        this.setHTML = function (model, html) {
-            if (model == this.data.model) {
-                tooltip.html('<div class="model">' + this.data.model + "</div>" +
-                             html);
-            }
-        }
-        
-        this.move = function () {
+            .append("div")
+            .classed("tooltip", true)
+        d3.select(window)
+            .on("mousemove", move);
+                
+        function move () {
             // Crude attempt to make the tooltip fit on the screen... improve!
             if (d3.event.clientX > window.innerWidth/2) {
                 tooltip
@@ -39,12 +23,17 @@ Tooltip = (function () {
             }
         };
 
+        this.setHTML = function (html) {
+            tooltip.html(html);
+        }
+        
         this.close = function () {
             tooltip.remove();
+            d3.select(window).on("mousemove", null);
         };
 
     };
 
-    return Tooltip;
+    return _Tooltip;
 
 })();

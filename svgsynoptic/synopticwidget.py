@@ -88,9 +88,10 @@ class SynopticWidget(QtGui.QWidget):
         # mouse interaction signals
         self.clicked = self.js.leftclicked
         self.rightClicked = self.js.rightclicked
+        self.hovered = self.js.hovered
         self.clicked.connect(self.on_click)
         self.rightClicked.connect(self.on_rightclick)
-        self.js.tooltip.connect(self._on_tooltip)
+        self.hovered.connect(self._on_hover)
 
         # Inject JSInterface into the JS global namespace as "Backend"
         frame.addToJavaScriptWindowObject('Backend', self.js)
@@ -114,16 +115,15 @@ class SynopticWidget(QtGui.QWidget):
         # we get the subscribed models as a comma separated list from Qt,
         # let's deliver something neater.
         if models:
-            self.handle_subscriptions(str(models).split(","))
+            self.handle_subscriptions(str(models).split("\n"))
         else:
             self.handle_subscriptions([])
 
     def handle_subscriptions(self, models):
         # This noop needs to be overridden in order for subscriptions
-        # to work!
+        # to actually do anything!
         # "models" is a list of models that are currently visible
         # in the synoptic.
-        print models
         pass
 
     def on_click(self, kind, name):
@@ -137,18 +137,20 @@ class SynopticWidget(QtGui.QWidget):
         "Placeholder; override me!"
         pass
 
-    def _on_tooltip(self, models):
-        if models:
-            self.on_tooltip(str(models).split(","))
-        else:
-            self.on_tooltip([])
+    def _on_hover(self, section, models):
+        self.on_hover(section, models.split("\n") if models else [])
 
-    def on_tooltip(self, models):
-        """This means that the synoptic is asking for updated
-        data to fill a tooltip. Use the updateTooltipHTML()
-        JS method to set it."""
-        print "***TOOLTIP***"
-        self.js.evaluate('synoptic.setTooltipHTML("%s", "<b>Hello</b>")' % models[0])
+    def on_hover(self, section, models):
+        "Show a basic 'tooltip' when the mouse pointer is over an item."
+        # Override this to add more interesting behavior
+        if section:
+            self.js.evaluate("synoptic.showTooltip();")
+            self.js.evaluate("synoptic.setTooltipHTML('%s')" % section)
+        elif models:
+            self.js.evaluate("synoptic.showTooltip();")
+            self.js.evaluate("synoptic.setTooltipHTML('%s')" % models[0])
+        else:
+            self.js.evaluate("synoptic.hideTooltip();")
 
     # # # 'Public' API # # #
 

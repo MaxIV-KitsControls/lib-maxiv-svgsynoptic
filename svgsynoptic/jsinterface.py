@@ -1,4 +1,3 @@
-from os import path
 from threading import Lock
 
 from PyQt4 import QtCore
@@ -16,6 +15,7 @@ class JSInterface(QtCore.QObject):
     subscription = QtCore.pyqtSignal(str)
     rightclicked = QtCore.pyqtSignal(str, str)
     leftclicked = QtCore.pyqtSignal(str, str)
+    hovered = QtCore.pyqtSignal(str, str)
     tooltip = QtCore.pyqtSignal(str)
     evaljs = QtCore.pyqtSignal(str)
     lock = Lock()
@@ -34,13 +34,17 @@ class JSInterface(QtCore.QObject):
             self.frame.evaluateJavaScript(js)
 
     @QtCore.pyqtSlot(str, str)
-    def left_click(self, kind, name):
-        print "left_click", kind, name
-        self.leftclicked.emit(kind, name)
+    def left_click(self, section, models):
+        self.leftclicked.emit(section, models)
 
     @QtCore.pyqtSlot(str, str)
-    def right_click(self, kind, name):
-        self.rightclicked.emit(kind, name)
+    def right_click(self, section, models):
+        self.rightclicked.emit(section, models)
+
+    @QtCore.pyqtSlot(str, str)
+    def hover(self, section, models):
+        print "hover", section, models
+        self.hovered.emit(section, models)
 
     @QtCore.pyqtSlot(str)
     def update_tooltip(self, model):
