@@ -138,7 +138,8 @@ class SynopticWidget(QtGui.QWidget):
         pass
 
     def _on_hover(self, section, models):
-        self.on_hover(section, models.split("\n") if models else [])
+        splitmodels = models.split("\n") if models else []
+        self.on_hover(section, splitmodels)
 
     def on_hover(self, section, models):
         "Show a basic 'tooltip' when the mouse pointer is over an item."

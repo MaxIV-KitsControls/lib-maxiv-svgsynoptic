@@ -21,27 +21,15 @@ Synoptic = (function () {
         var layers = new LayerTogglers(container, svg, config.layers);
         layers.addCallback(function () {updateVisibility();});
 
-        // var tooltip = new Tooltip(container, svg);
-        // tooltip.addCallback(function (model) {
-        //     fireEventCallbacks("tooltip", model)
-        // });
-        
-        // var quicklinks = new QuickLinks(container, svg, function (section) {return section.split("-")[1];});
-        // //quicklinks.addCallback("click", functionconsole.log()); 
-        // quicklinks.addCallback("click", zoomTo.bind(this, "section"));       
-
         
         /********** Utils **********/
 
         var selectNodes = function (type, name) {
-            return svg.selectAll(":not(text)." + type)
+            // return a d3 selection containing all elements of that has a "type" (e.g. model) called "name"
+            return svg.selectAll("." + type)
                 .filter(function (d) {return (d[type] == name) ||
                                       (d[type].indexOf(name) != -1);});
         }
-
-        // function getNodeId (data) {
-        //     return data.model[0] + "+" + data.section;
-        // }
 
         /********** Input events **********/
 
@@ -93,6 +81,9 @@ Synoptic = (function () {
                 })
             // hover            
                 .on("mouseover", function (d) {
+                    // vbox = view.getViewBox();
+                    // var visible = isInView(getBBox("model", d.model[0]), vbox);
+                    // console.log("visible " + d.model[0] + " " +  visible)
                     if (d) fireEventCallbacks("hover", d);
                 })
                 .on("mouseout", function (d) {
@@ -221,8 +212,9 @@ Synoptic = (function () {
 
             sel  // hide things that are out of view
                 .filter(function (d) {
-                    console.log("model " + d.model[0]);
-                    return !isInView(getBBox("model", d.model[0]), vbox);
+                    var visible = isInView(getBBox("model", d.model[0]), vbox);
+                    // console.log("model " + d.model[0] + " " + visible);
+                    return !visible
                 })
                 .classed("hidden", true)
                 .classed("updated", false);
@@ -270,12 +262,13 @@ Synoptic = (function () {
         };
 
         this.setClasses = function (type, name, classes) {
-            console.log("setClasses " + name + " " + Object.keys(classes).filter(function (m) {return classes[m]}).join(", "));
+            // console.log("setClasses " + name + " " + Object.keys(classes).filter(function (m) {return classes[m]}).join(", "));
             setClasses(type, name, classes);
         };
 
-        this.setHTML = function (type, name, html) {
-            selectNodes(type, name).html(html);
+        this.setText = function (type, name, html) {
+            console.log("setHTML " + type + " " +  name + " " + html)
+            selectNodes(type, name).text(html);
         }
 
         this.showTooltip = function () {

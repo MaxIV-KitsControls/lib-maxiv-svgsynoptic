@@ -5,6 +5,7 @@ from PyQt4 import QtCore
 from taurus import Attribute
 from taurus.core.taurusvalidator import (AttributeNameValidator,
                                          DeviceNameValidator)
+from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
 import PyTango
 
 from ttldict import TTLDict
@@ -21,7 +22,8 @@ class Registry(QtCore.QThread):
         self.listeners = {}
         self.callback = callback
         self._attributes = None
-        self._last_events = TTLDict(default_ttl=10)
+        self._config = {}
+        self._last_event = TTLDict(default_ttl=10)
         self.attribute_validator = AttributeNameValidator()
         self.device_validator = DeviceNameValidator()
         self.lock = Lock()
@@ -44,26 +46,39 @@ class Registry(QtCore.QThread):
             elif self.device_validator.isValid(model):
                 attrs.add(model + "/State")
             else:
-                print ("Invalid model %s; must be Tango device or attribute!" %
-                       model)
+                raise ValueError(
+                    "Invalid model %s; must be Tango device or attribute!" %
+                    model)
         self._attributes = attrs
+
+    def get_value(self, model):
+        evt = self._last_event.get(model)
+        if evt:
+            return evt.attr_value
+
+    def get_config(self, model):
+        return self._config.get(model)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type in (PyTango.EventType.CHANGE_EVENT,
                         PyTango.EventType.PERIODIC_EVENT):
             model = evt_src.getNormalName()
             if model in self.listeners:
-                if model in self._last_events:
-                    last_event = self._last_events[model]
+                if model in self._last_event:
+                    last_event = self._last_event[model]
                     if (evt_value.value != last_event.value and
                         evt_value.quality != last_event.quality):
                         self.callback(model, evt_value)
                 else:
                     self.callback(model, evt_value)
-                self._last_events[model] = evt_value
+                self._last_event[model] = evt_value
             else:
                 listener = self.listeners.pop(model)
                 listener.removeListener(self.handleEvent)
+        elif evt_type == TaurusEventType.Config:
+            model = evt_src.getNormalName().split("?")[0]
+            self._config[model] = evt_value
+
         # TODO: Config events, errors..?
 
     def update(self, attributes=set()):
@@ -75,13 +90,13 @@ class Registry(QtCore.QThread):
         old_attrs = listeners - attributes
 
         for attr in old_attrs:
-            self.listeners.pop(attr).removeListener(self.handleEvent)
-            self._last_events.pop(attr, None)
+            self.listeners.pop(attr).removeListener(self.callback)
+            self._last_event.pop(attr, None)
 
         for attr in new_attrs:
             try:
                 tattr = self.listeners[attr] = Attribute(attr)
-                tattr.addListener(self.handleEvent)
+                tattr.addListener(self.callback)
             except PyTango.DevFailed as e:
                 print "Failed to setup listener for", attr, e
                 pass  # Do something?

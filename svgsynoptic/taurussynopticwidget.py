@@ -7,6 +7,8 @@ from taurus import Manager, Attribute
 from taurus.core.taurusbasetypes import TaurusSerializationMode
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.panel import TaurusWidget, TaurusDevicePanel
+from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
+
 from taurusregistry import Registry
 
 
@@ -53,12 +55,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     def setModel(self, image, section=None):
         print "setModel", image
         self.set_url(image)
-        self.registry = Registry(self._attribute_listener)
+        self.registry = Registry(self.attribute_listener)
         self.registry.start()
 
-        self._tooltip_data = {}
-        self.tooltip_registry = Registry(self._tooltip_updater)
-        self.tooltip_registry.start()
+        # self._tooltip_data = {}
+        # self.tooltip_registry = Registry(self._tooltip_updater)
+        # self.tooltip_registry.start()
 
     def getModel(self):
         return self._url
@@ -80,7 +82,27 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # evaljs complains about "SyntaxError: Expected token ')'"
         self.js.evaluate("synoptic.handleEvent(%r)" % json.dumps(event))
 
-    def _attribute_listener(self, model, attr_value):
+    def attribute_listener(self, evt_src, evt_type, evt_value):
+        if evt_type == TaurusEventType.Error:
+            return  # handle errors somehow
+        if evt_type == TaurusEventType.Config:
+            return  # need to do something here too
+        model = evt_src.getNormalName()
+        value = evt_value.value
+        if evt_value.data_format == DataFormat._0D:
+            # we'll ignore spectrum/image attributes
+            if isinstance(value, PyTango._PyTango.DevState):
+                classes = getStateClasses(value)
+                device, attr = model.rsplit("/", 1)
+                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                                 (device, json.dumps(classes)))
+                self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
+                                 (device, json.dumps(classes)))
+            else:
+                text = evt_src.displayValue(value)
+                self.js.evaluate("synoptic.setText('model', %r, %r)" % (model, text))
+
+    def ___attribute_listener(self, model, attr, attr_value):
         value = attr_value.value
         if isinstance(value, PyTango._PyTango.DevState):
             classes = getStateClasses(value)
@@ -90,7 +112,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
                              (device, json.dumps(classes)))
         else:
-            self.js.evaluate("synoptic.setHTML('model', %r, %r)" % model, value)
+            config = self.registry.get_config(model)
+            if config:
+                text = config.format % value
+            else:
+                text = str(value)
+            self.js.evaluate("synoptic.setText('model', %r, %r)" % (model, value))
 
     def on_click(self, kind, name):
         """The default behavior is to mark a clicked device and to zoom to a
