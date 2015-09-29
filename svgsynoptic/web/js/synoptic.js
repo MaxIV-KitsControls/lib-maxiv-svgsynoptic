@@ -240,11 +240,14 @@ Synoptic = (function () {
                         bbox.width + " " + bbox.height);
             view.moveToBBox(bbox, 200, 0.25);
         };
-        
+
         /********** API **********/
 
         this.addEventCallback = function (eventType, callback) {
             listeners[eventType].push(callback);
+            
+            if (eventType == "subscribe")
+                updateVisibility()
         };
 
         // TODO: removeEventCallback()
