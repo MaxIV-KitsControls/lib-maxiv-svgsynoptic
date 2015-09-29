@@ -102,10 +102,12 @@ Synoptic = (function () {
                         bbox.x + " " + bbox.y + " " +
                         bbox.width + " " + bbox.height)
             d3.select(node.parentNode)
-                .insert("svg:circle", ":first-child")
+                .insert("svg:ellipse", ":first-child")
                 .attr("cx", bbox.x + bbox.width/2)
                 .attr("cy", bbox.y + bbox.height/2)
-                .attr("r", Math.max(bbox.width, bbox.height) / 1.5)
+            // .attr("r", Math.max(bbox.width, bbox.height) / 1.5)
+                .attr("rx", bbox.width)
+                .attr("ry", bbox.height)
                 .classed("selection", true);
         }
 
@@ -258,7 +260,7 @@ Synoptic = (function () {
         };
 
         this.unselectAll = function () {
-            svg.selectAll("circle.selection").remove();
+            svg.selectAll(".selection").remove();
         };
 
         this.setClasses = function (type, name, classes) {

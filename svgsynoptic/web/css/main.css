@@ -13,11 +13,6 @@ body, html {
     -webkit-transform: translateZ(0);
 }
 
-
-text:not(.model):not(.section), tspan:not(.model):not(.section) {
-    pointer-events: none;
-}
-
 img.logo {
     position: absolute;
     right: 10px;
@@ -34,7 +29,7 @@ svg {
     shape-rendering: optimizeSpeed;
 }
 
-circle.selection {
+ellipse.selection {
     opacity: 0.25;
     fill: black;
     stroke: none;
@@ -43,6 +38,12 @@ circle.selection {
 
 .model.hidden {
     opacity: 0.5;
+}
+
+/* we want the pointer to ignore most text but not text with models
+because there we may want to add behavior (e.g. tooltip)*/
+text:not(.model):not(.section), tspan:not(.model):not(.section) {
+    pointer-events: none;
 }
 
 text.hidden {
