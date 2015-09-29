@@ -100,7 +100,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                  (device, json.dumps(classes)))
             else:
                 text = evt_src.displayValue(value)
-                self.js.evaluate("synoptic.setText('model', %r, %r)" % (model, text))
+                unit = evt_src.getConfig().unit
+                self.js.evaluate("synoptic.setText('model', %r, '%s %s')" % (model, text, unit))
 
     def ___attribute_listener(self, model, attr, attr_value):
         value = attr_value.value
@@ -125,11 +126,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         else.
         """
         print "on_click", kind, name
-        if kind == "model":
+        if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
         elif kind == "section":
             self.zoom_to(kind, name)
+        else:
+            self.unselect_all()
 
     def get_device_panel(self, device):
         """Override to change which panel is opened for a given

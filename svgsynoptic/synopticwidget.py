@@ -171,6 +171,8 @@ class SynopticWidget(QtGui.QWidget):
                 self.js.evaluate("synoptic.select(%r, %r)" %
                                  (str(kind), str(name)))
 
+    def unselect_all(self):
+        self.js.evaluate("synoptic.unselectAll();")
     # def send_debug_message(self, msg):
     #     self.js.evaluate("Tango.debugMessage(%r)" % msg)
 
