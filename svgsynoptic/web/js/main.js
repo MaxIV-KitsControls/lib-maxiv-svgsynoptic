@@ -128,9 +128,13 @@ window.addEventListener("load", function () {
                 }
             });
 
-        if (svg.select("g").attr("transform"))
-            console.log("*Warning* there is a transform on the 'main' layer/group in the SVG. " +
-                        "This is likely to mess up positioning of some things.");
+        // // Note: this should now be fixed... remove
+        // if (svg.select("g").attr("transform")) {
+        //     console.log("********************************************************")
+        //     console.log("*Warning* there is a transform on the 'main' layer/group in the SVG. " +
+        //                 "This is likely to mess up positioning of some things.");
+        //     console.log("********************************************************")
+        // }
 
 
         // Remove inline styles from symbols, to make sure they will

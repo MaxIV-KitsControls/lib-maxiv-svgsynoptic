@@ -31,9 +31,15 @@ var View = (function () {
         var width = parseInt(svg.attr("width")),
             height = parseInt(svg.attr("height"));
 
+        var originalTransform = d3.transform(svgMain.attr("transform"));
+        console.log("originalTransform: " + originalTransform)
+        
+        // svgMain.attr("transform", null);
+
         var elWidth, elHeight, scale0;
         setSize();
 
+        
         function _updateDetailLevel(scale) {
 
             var relScale = scale / scale0, zoomLevel;
@@ -75,7 +81,7 @@ var View = (function () {
 
         function zoomed() {
             svgMain.attr("transform", "translate(" + d3.event.translate +
-                         ")scale(" + d3.event.scale + ")");
+                         ")scale(" + d3.event.scale + ")" + originalTransform.toString());
             updateDetailLevel(d3.event.scale);
             fireChangeCallbacks();
         }
@@ -126,9 +132,19 @@ var View = (function () {
         this.moveToBBox = moveToBBox;
 
         var getViewBox = this.getViewBox = function () {
-            var translate = zoom.translate(), scale = zoom.scale();
+
+            // Need to take the original transform of the main element
+            // into account. A bit fiddly, and may not be quite correct
+            // particularly regarding scale... keep an eye on this!
+            var origTranslate = originalTransform.translate,
+                origScale =  originalTransform.scale,      
+                translate = zoom.translate(), scale = zoom.scale(),
+                oTransX = origTranslate[0] * origScale[0] * scale,
+                oTransY = origTranslate[1] * origScale[1] * scale;
+            
             return {
-                x: -translate[0] / scale, y: -translate[1] / scale,
+                x: -(translate[0] + oTransX) / scale,
+                y: -(translate[1] + oTransY) / scale,
                 width: elWidth / scale, height: elHeight / scale
             };
         };
