@@ -12,7 +12,7 @@ LayerTogglers = (function () {
         var togglable = svg.selectAll(".layer.togglable");
                             
 
-        var node = d3.select("#view")
+        var node = d3.select(container)
                 .append("div")
                 .classed("layer-toggles", true);
 
