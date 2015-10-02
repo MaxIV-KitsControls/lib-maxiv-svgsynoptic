@@ -164,6 +164,40 @@ var View = (function () {
             };
         };
 
+        window.addEventListener("keydown", function (ev) {
+
+            var bbox = getViewBox()
+            switch(ev.keyCode) {
+                
+            case 37:
+                moveToBBox({
+                    x: bbox.x - bbox.width * .5, y: bbox.y,
+                    width: bbox.width, height: bbox.height
+                }, 200);
+                break;
+            case 39:
+                moveToBBox({
+                    x: bbox.x + bbox.width * .5, y: bbox.y,
+                    width: bbox.width, height: bbox.height
+                }, 200);
+                break;
+                
+            case 38:
+                moveToBBox({
+                    x: bbox.x, y: bbox.y - bbox.height * .5,
+                    width: bbox.width, height: bbox.height
+                }, 200);
+                break;                
+            case 40:
+                moveToBBox({
+                    x: bbox.x, y: bbox.y + bbox.height * .5,
+                    width: bbox.width, height: bbox.height
+                }, 200);
+                break;
+                
+            }
+        });
+        
         this.addCallback = function (cb) {
             changeCallbacks.push(cb);
         };
