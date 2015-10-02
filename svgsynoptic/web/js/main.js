@@ -45,6 +45,7 @@ window.addEventListener("load", function () {
         // Event subscription updates
         synoptic.addEventCallback("subscribe", subscribe);
 
+        
         Backend.setup(); 
 
     }
@@ -119,16 +120,19 @@ window.addEventListener("load", function () {
         zoomlevels
             .each(function () {
                 var node = d3.select(this),
-                    name = d3.select(this).attr("inkscape:label"),
+                    name = node.attr("inkscape:label"),
                     match = /zoom(\d)/.exec(name);
                 if (match) {
                     var level = parseInt(match[1]);
                     console.log("zoom level", name, level);
                     node.classed("zoom", true);
                     node.classed("level"+level, true);
+                    node.style("display", null);
                 }
             });
 
+
+        
         // // Note: this should now be fixed... remove
         // if (svg.select("g").attr("transform")) {
         //     console.log("********************************************************")
