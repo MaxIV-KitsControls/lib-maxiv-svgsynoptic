@@ -90,16 +90,21 @@ class Registry(QtCore.QThread):
         old_attrs = listeners - attributes
 
         for attr in old_attrs:
+            if self._attributes:
+                # meaning we got a new list of subscriptions, so
+                # no point in continuing with this one.
+                return
             self.listeners.pop(attr).removeListener(self.callback)
             self._last_event.pop(attr, None)
 
         for attr in new_attrs:
+            if self._attributes:
+                return
             try:
                 tattr = self.listeners[attr] = Attribute(attr)
                 tattr.addListener(self.callback)
             except PyTango.DevFailed as e:
                 print "Failed to setup listener for", attr, e
-                pass  # Do something?
 
     def stop(self):
         self.stopped.set()
