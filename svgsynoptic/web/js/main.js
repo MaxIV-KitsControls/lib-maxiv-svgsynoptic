@@ -96,7 +96,7 @@ window.addEventListener("load", function () {
         // Setup all the layers that should be user selectble
         var layers = svg.selectAll("svg > g > g")
             .filter(function () {
-                console.log("sanitix " + d3.select(this).attr("inkscape:groupmode"));
+                // console.log("sanitix " + d3.select(this).attr("inkscape:groupmode"));
                 return d3.select(this).attr("inkscape:groupmode") == "layer";})
             .attr("id", function () {
                 //console.log("sanitix " + d3.select(this).attr("inkscape:label"));
@@ -186,7 +186,7 @@ window.addEventListener("load", function () {
                             console.log(kind + " " + name)
                             data[kind].push(name);
                         } else {
-                            console.log("flepp " + name)
+                            // console.log("found " + kind + " " + name)
                             data[kind] = [name];
                         }
                         classes[kind] = true;
