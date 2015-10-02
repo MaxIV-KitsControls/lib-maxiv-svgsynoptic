@@ -101,6 +101,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             else:
                 text = evt_src.displayValue(value)
                 unit = evt_src.getConfig().unit
+                if unit == "No unit":
+                    unit = ""
                 self.js.evaluate("synoptic.setText('model', %r, '%s %s')" % (model, text, unit))
 
     def ___attribute_listener(self, model, attr, attr_value):

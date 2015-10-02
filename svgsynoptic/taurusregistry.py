@@ -36,7 +36,7 @@ class Registry(QtCore.QThread):
             if self._attributes:
                 attributes, self._attributes = self._attributes, None
                 with self.lock:
-                    self.update(attributes)
+                    self._update(attributes)
 
     def subscribe(self, models=[]):
         attrs = set()
@@ -77,11 +77,11 @@ class Registry(QtCore.QThread):
                 listener.removeListener(self.handleEvent)
         elif evt_type == TaurusEventType.Config:
             model = evt_src.getNormalName().split("?")[0]
-            self._config[model] = evt_value
 
+            self._config[model] = evt_value
         # TODO: Config events, errors..?
 
-    def update(self, attributes=set()):
+    def _update(self, attributes=set()):
 
         "Update the subscriptions"
 
@@ -111,4 +111,4 @@ class Registry(QtCore.QThread):
 
     def clear(self):
         self._attributes = None
-        self.update()
+        self._update()
