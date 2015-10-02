@@ -2,14 +2,13 @@ var Tooltip = (function () {
 
     
     // A simple tooltip (info box that pops up under the mouse)
-    function _Tooltip(element) {
+    function _Tooltip(element, view) {
 
         var tooltip = d3.select(element)
             .append("div")
             .classed("tooltip", true)
-        d3.select(window)
-            .on("mousemove", move);
-                
+            .style("display", "none");
+        
         function move () {
             // Crude attempt to make the tooltip fit on the screen... improve!
             if (d3.event.clientX > window.innerWidth/2) {
@@ -26,9 +25,15 @@ var Tooltip = (function () {
         this.setHTML = function (html) {
             tooltip.html(html);
         }
+
+        this.open = function () {
+            tooltip.style("display", null);
+            d3.select(window)
+                .on("mousemove", move);
+        }
         
         this.close = function () {
-            tooltip.remove();
+            tooltip.style("display", "none");
             d3.select(window).on("mousemove", null);
         };
 

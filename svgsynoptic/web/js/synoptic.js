@@ -29,6 +29,8 @@ Synoptic = (function () {
             
         if (window.Thumbnail)
             var thumbnail = new Thumbnail(container, view, svg_copy, config.thumbnail);
+        if (window.Tooltip)
+            var tooltip = new Tooltip(container);
 
         
         /********** Utils **********/
@@ -284,22 +286,19 @@ Synoptic = (function () {
         };
 
         this.setText = function (type, name, html) {
-            // console.log("setHTML " + type + " " +  name + " " + html)
             selectNodes(type, name).text(html);
         }
 
         this.showTooltip = function () {
-            // console.log("showTooltip")
-            this.tooltip = new Tooltip(this.container);
+            tooltip.open()
         }
 
         this.hideTooltip = function () {
-            this.tooltip.close();
-            this.tooltip = null;
+            tooltip.close();
         }
         
         this.setTooltipHTML = function (html) {
-            this.tooltip.setHTML(html);
+            tooltip.setHTML(html);
         }
         
         // // preheat the getBBox cache (may take a few seconds)
