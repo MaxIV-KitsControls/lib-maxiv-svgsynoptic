@@ -11,6 +11,11 @@
 }
 
 
+.thumbnail:hover {
+    opacity: 1;
+}
+
+
 .thumbnail .inner {
     width: 100%;
     height: 100%;
