@@ -77,11 +77,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         if self.registry:
             self.registry.subscribe(models)
 
-    def __attribute_listener(self, event):
-        # TODO: seems like multiline strings may need more escaping, else
-        # evaljs complains about "SyntaxError: Expected token ')'"
-        self.js.evaluate("synoptic.handleEvent(%r)" % json.dumps(event))
-
     def attribute_listener(self, evt_src, evt_type, evt_value):
         if evt_type == TaurusEventType.Error:
             return  # handle errors somehow
@@ -103,24 +98,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 unit = evt_src.getConfig().unit
                 if unit == "No unit":
                     unit = ""
-                self.js.evaluate("synoptic.setText('model', %r, '%s %s')" % (model, text, unit))
-
-    def ___attribute_listener(self, model, attr, attr_value):
-        value = attr_value.value
-        if isinstance(value, PyTango._PyTango.DevState):
-            classes = getStateClasses(value)
-            device, attr = model.rsplit("/", 1)
-            self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
-                             (device, json.dumps(classes)))
-            self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
-                             (device, json.dumps(classes)))
-        else:
-            config = self.registry.get_config(model)
-            if config:
-                text = config.format % value
-            else:
-                text = str(value)
-            self.js.evaluate("synoptic.setText('model', %r, %r)" % (model, value))
+                self.js.evaluate("synoptic.setText('model', %r, '%s %s')" %
+                                 (model, text, unit))
 
     def on_click(self, kind, name):
         """The default behavior is to mark a clicked device and to zoom to a
