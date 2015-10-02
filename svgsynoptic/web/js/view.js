@@ -41,7 +41,6 @@ var View = (function () {
 
         
         function _updateDetailLevel(scale) {
-
             var relScale = scale / scale0, zoomLevel;
 
             /* This is a primitive way to switch zoom level.
@@ -71,8 +70,7 @@ var View = (function () {
                     });
                 // ...and show the new
                 zoomSel.filter(levelClass)
-                    .classed("hidden", false)
-                    .classed("really-hidden", false)
+                    .classed({"hidden": false, "really-hidden": false})
                     .transition().duration(400)
                     .attr("opacity", 1);
                 oldZoomLevel = zoomLevel;
@@ -81,13 +79,13 @@ var View = (function () {
 
         function zoomed() {
             svgMain.attr("transform", "translate(" + d3.event.translate +
-                         ")scale(" + d3.event.scale + ")" + originalTransform.toString());
+                         ")scale(" + d3.event.scale + ")"
+                         + originalTransform.toString());
             updateDetailLevel(d3.event.scale);
             fireChangeCallbacks();
         }
 
-        var zoomSel = svgMain.selectAll("g.zoom"),
-            oldZoomLevel = -1,
+        var zoomSel = svgMain.selectAll("g.zoom"), oldZoomLevel = -1,
             updateDetailLevel = _.throttle(_updateDetailLevel, 100,
                                            {leading: false});
         
@@ -131,6 +129,23 @@ var View = (function () {
         }
         this.moveToBBox = moveToBBox;
 
+        // smoothly pan the view to center on a coordinate
+        function moveTo(coord, duration) {
+            console.log("moveTo " + coord.x + " " + coord.y);
+            duration = duration || 500;
+            var bbox = getViewBox();
+            var padded = {x: coord.x - bbox.width/2,
+                          y: coord.y - bbox.height/2,
+                          width: bbox.width,
+                          height: bbox.height},
+                z = setZoom(padded);
+            svg.transition()
+                .duration(duration)
+                .ease("linear")
+                .call(z.event);
+        }
+        this.moveTo = moveTo;
+        
         var getViewBox = this.getViewBox = function () {
 
             // Need to take the original transform of the main element
@@ -178,10 +193,10 @@ var View = (function () {
                 .translate([oldTrans[0] * newScale / oldScale,
                             oldTrans[1] * newScale / oldScale])
                 .scaleExtent([scale0, maxZoom*scale0]);
-            zoom.event(svg);
+            zoom.event(svg)
         }
         window.addEventListener("resize", updateSize);
-
+        
     }
 
     return View;

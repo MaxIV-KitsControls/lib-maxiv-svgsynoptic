@@ -4,7 +4,9 @@ Synoptic = (function () {
     function Synoptic (container, svg, config) {
 
         config = config || {};
-        
+
+        var svg_copy = d3.select(svg.node().cloneNode(true));
+                
         // the View takes care of the basic navigation; zooming,
         // panning etc, and switching between detail levels.
         var view = new View(container, svg, config.view);
@@ -18,8 +20,15 @@ Synoptic = (function () {
         view.addCallback(
             _.debounce(updateVisibility, 500, {leading: false}));
 
-        var layers = new LayerTogglers(container, svg, config.layers);
-        layers.addCallback(function () {updateVisibility();});
+        /* optional plugins */
+        
+        if (window.LayerTogglers) {
+            var layers = new LayerTogglers(container, svg, config.layers);
+            layers.addCallback(function () {updateVisibility();});
+        }
+            
+        if (window.Thumbnail)
+            var thumbnail = new Thumbnail(container, view, svg_copy, config.thumbnail);
 
         
         /********** Utils **********/
@@ -56,6 +65,7 @@ Synoptic = (function () {
                 return "model";
         }
 
+        // TODO: refactor, this probably belongs in the View...
         function setupMouse () {
 
             // Note: it would be nicer to put these callbacks on the
@@ -212,6 +222,8 @@ Synoptic = (function () {
             vbox = vbox || view.getViewBox();
             var sel = selectShownThings();
 
+            console.log("updateVisibility " + vbox.x + ", " + vbox.y + ", " + vbox.width + ", " + vbox.height);
+
             sel  // hide things that are out of view
                 .filter(function (d) {
                     var visible = isInView(getBBox("model", d.model[0]), vbox);
@@ -247,7 +259,7 @@ Synoptic = (function () {
             listeners[eventType].push(callback);
             
             if (eventType == "subscribe")
-                updateVisibility()
+                updateVisibility;
         };
 
         // TODO: removeEventCallback()
@@ -272,12 +284,12 @@ Synoptic = (function () {
         };
 
         this.setText = function (type, name, html) {
-            console.log("setHTML " + type + " " +  name + " " + html)
+            // console.log("setHTML " + type + " " +  name + " " + html)
             selectNodes(type, name).text(html);
         }
 
         this.showTooltip = function () {
-            console.log("showTooltip")
+            // console.log("showTooltip")
             this.tooltip = new Tooltip(this.container);
         }
 
