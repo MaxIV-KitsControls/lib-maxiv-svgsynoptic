@@ -18,7 +18,6 @@ div.layer-toggle {
     padding: 3px 6px;
 }
 
-
 svg .layer.togglable.hidden {
     display: none;
     pointer-events: none;
