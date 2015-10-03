@@ -113,7 +113,6 @@ var View = (function () {
 
         // smoothly pan and zoom the view to a given bounding box
         function moveToBBox(bbox, duration, padding) {
-            duration = duration || 500;
             padding = padding || 0;
             var maxDim = Math.max(bbox.width, bbox.height),
                 maxpadding = maxDim * padding,
@@ -122,27 +121,33 @@ var View = (function () {
                           width: bbox.width + maxpadding * 2,
                           height: bbox.height + maxpadding * 2},
                 z = setZoom(padded);
-            svg.transition()
-                .duration(duration)
-                .ease("linear")
-                .call(z.event);
+            if (duration) {
+                svg.transition()
+                    .duration(duration)
+                    .ease("linear")
+                    .call(z.event);
+            } else {
+                svg.call(z.event);
+            }
         }
         this.moveToBBox = moveToBBox;
 
         // smoothly pan the view to center on a coordinate
         function moveTo(coord, duration) {
-            console.log("moveTo " + coord.x + " " + coord.y);
-            duration = duration || 500;
             var bbox = getViewBox();
             var padded = {x: coord.x - bbox.width/2,
                           y: coord.y - bbox.height/2,
                           width: bbox.width,
                           height: bbox.height},
                 z = setZoom(padded);
-            svg.transition()
-                .duration(duration)
-                .ease("linear")
-                .call(z.event);
+            if (duration) {
+                svg.transition()
+                    .duration(duration)
+                    .ease("linear")
+                    .call(z.event);
+            } else {
+                svg.call(z.event);
+            }
         }
         this.moveTo = moveTo;
         
@@ -173,26 +178,26 @@ var View = (function () {
                 moveToBBox({
                     x: bbox.x - bbox.width * .5, y: bbox.y,
                     width: bbox.width, height: bbox.height
-                }, 200);
+                });
                 break;
             case 39:
                 moveToBBox({
                     x: bbox.x + bbox.width * .5, y: bbox.y,
                     width: bbox.width, height: bbox.height
-                }, 200);
+                });
                 break;
                 
             case 38:
                 moveToBBox({
                     x: bbox.x, y: bbox.y - bbox.height * .5,
                     width: bbox.width, height: bbox.height
-                }, 200);
+                });
                 break;                
             case 40:
                 moveToBBox({
                     x: bbox.x, y: bbox.y + bbox.height * .5,
                     width: bbox.width, height: bbox.height
-                }, 200);
+                });
                 break;
                 
             }
