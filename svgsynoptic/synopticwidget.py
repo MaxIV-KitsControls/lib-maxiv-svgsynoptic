@@ -34,8 +34,9 @@ class SynopticWidget(QtGui.QWidget):
     """
     A Qt widget displaying a SVG synoptic in a webview.
 
-    Basically all interaction is handled by JS on the webview side,
-    here we just connect the JS and Tango sides up.
+    This widget does not have a "backend", so it's intended
+    to be subclassed to add control system specific behavior.
+    See TaurusSynopticWidget for a TANGO implementation.
     """
 
     subscribe = QtCore.pyqtSignal(str)
@@ -74,15 +75,9 @@ class SynopticWidget(QtGui.QWidget):
         view.setPage(page)
         view.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
 
-        # the HTML page that will contain the SVG
-        # Can be overridden if needed. TODO: find a cleaner way
-        #html = QtCore.QUrl(html)
-        # html = QtCore.QUrl(os.path.dirname(__file__) + "/web/local.html")
-
         # setup the JS interface
         frame = view.page().mainFrame()
         self.js = JSInterface(frame)
-        # connect the registry to handle subscription changes
         self.js.subscription.connect(self.subscribe)
 
         # mouse interaction signals
@@ -96,14 +91,14 @@ class SynopticWidget(QtGui.QWidget):
         # Inject JSInterface into the JS global namespace as "Backend"
         frame.addToJavaScriptWindowObject('Backend', self.js)
 
-        # After the page has loaded, load the SVG itself into it
-        # view.loadFinished.connect(
-        #     lambda: self.js.evaluate('loadSVG(%r)' % svg))
-
         # load the page
-        #view.load(html)
-        base_url = QtCore.QUrl().fromLocalFile(os.path.dirname(__file__) + "/web/")
-        print base_url
+        # need to set the "base URL" for the webview to find the
+        # resources (js, css).
+        base_url = QtCore.QUrl().fromLocalFile(
+            os.path.dirname(__file__) + "/web/")
+
+        # some ugly magic to get the path to the SVG file right. It
+        # needs to be absolute because local paths go to the base URL.
         abspath = os.path.dirname(os.path.abspath(html))
         with open(html) as f:
             text = f.read().replace("${path}", abspath)  # TODO: use template

@@ -1,3 +1,7 @@
+"""
+A Taurus based TANGO backend for the SVG synoptic.
+"""
+
 import json
 
 from PyQt4 import QtCore
@@ -41,7 +45,7 @@ def getStateClasses(state):
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
-    """A SynopticWidget that connects to Tango in order to
+    """A SynopticWidget that connects to TANGO in order to
     get updates for models (attributes)."""
 
     tooltip_trigger = QtCore.pyqtSignal(str)
@@ -154,15 +158,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 w.setModel(None)
                 print "done!"
 
-    # def __on_tooltip(self, model):
-    #     if hasattr(self, "_updater") and self._updater.isRunning():
-    #         self._updater.stop()
-    #     self._updater = TooltipUpdater(model)
-    #     self._updater.finished.connect(self._on_tooltip)
-    #     self._updater.start()
-
-    # def _on_tooltip(self, model, html):
-    #     self.js.evaluate('synoptic.setTooltipHTML("%s", %s)' % (model, html))
+    # Note: the tooltip stuff is broken and not currently in use.
+    # Currently there is only the default tooltip which displays the
+    # model name.
 
     def on_tooltip(self, models):
         # FIXME: looks like tooltip listeners aren't cleaned up until a new
