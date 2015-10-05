@@ -17,8 +17,7 @@ Synoptic = (function () {
         // listeners etc. But since this is a pretty expensive and slow
         // operation, we'll only do it once the user has stopped moving
         // around for a bit.
-        view.addCallback(
-            _.debounce(updateVisibility, 500, {leading: false}));
+        view.addCallback(_.debounce(updateVisibility, 500, {leading: false}));
 
         
         /* optional plugins */
@@ -41,7 +40,8 @@ Synoptic = (function () {
         /********** Utils **********/
 
         var selectNodes = function (type, name) {
-            // return a d3 selection containing all elements of that has a "type" (e.g. model) called "name"
+            // return a d3 selection containing all elements of that
+            // has a "type" (e.g. model) called "name"
             return svg.selectAll("." + type)
                 .filter(function (d) {return (d[type] == name) ||
                                       (d[type].indexOf(name) != -1);});
@@ -83,8 +83,7 @@ Synoptic = (function () {
             // likely to be a bug in older webkit versions.
 
             // leftclick
-            svg
-                .selectAll(".section, .model")
+            svg.selectAll(".section, .model")
                 .on("click", function (d) {
                     if (d3.event.defaultPrevented) return;
                     // Only makes sense to click items with data
@@ -98,15 +97,11 @@ Synoptic = (function () {
                 })
             // hover            
                 .on("mouseover", function (d) {
-                    // vbox = view.getViewBox();
-                    // var visible = isInView(getBBox("model", d.model[0]), vbox);
-                    // console.log("visible " + d.model[0] + " " +  visible)
                     if (d) fireEventCallbacks("hover", d);
                 })
                 .on("mouseout", function (d) {
                     if (d) fireEventCallbacks("hover", null);
                 })
-
         }
 
         setupMouse();
@@ -122,7 +117,6 @@ Synoptic = (function () {
                 .insert("svg:ellipse", ":first-child")
                 .attr("cx", bbox.x + bbox.width/2)
                 .attr("cy", bbox.y + bbox.height/2)
-            // .attr("r", Math.max(bbox.width, bbox.height) / 1.5)
                 .attr("rx", bbox.width)
                 .attr("ry", bbox.height)
                 .classed("selection", true);
@@ -151,31 +145,6 @@ Synoptic = (function () {
                           bbox.y < vbox.y + vbox.height);
             return result;
         }
-
-        // precalculate device bounding boxes
-        // Since the element can be a <use> element we can't trust
-        // the getBBox result but have to do something heavier...
-        // devNodes.each(function (d) {
-        //     try {
-        //         _bboxes.device[d.name] = util.transformedBoundingBox(this);
-        //     } catch (e) {
-        //         // This probably means that the element is not displayed.
-        //     }
-        // });
-        // attrNodes.each(function (d) {
-        //     try {
-        //         _bboxes.attribute[d.name] = util.transformedBoundingBox(this);
-        //     } catch (e) {console.log("no bbox for attribute", d.name);}
-        // });
-
-        // secNodes.each(function (d) {
-        //     try {
-        //         _bboxes.section[d.name] = util.transformedBoundingBox(this);
-        //     } catch (e) {
-        //         console.log("no bbox for section", d.name);
-        //     }
-        // });
-
 
         function _getBBox (type, name) {
             try {     
@@ -224,12 +193,9 @@ Synoptic = (function () {
 
         // Find all devices that can be seen and activate them
         function updateVisibility (vbox) {
-            // TODO: for some reason we don't unsubscribe to things when
-            // zooming *out* to a higher level.
+
             vbox = vbox || view.getViewBox();
             var sel = selectShownThings();
-
-            console.log("updateVisibility " + vbox.x + ", " + vbox.y + ", " + vbox.width + ", " + vbox.height);
 
             sel  // hide things that are out of view
                 .filter(function (d) {
@@ -260,6 +226,7 @@ Synoptic = (function () {
             view.moveToBBox(bbox, 200, 0.25);
         };
 
+        
         /********** API **********/
 
         this.addEventCallback = function (eventType, callback) {
@@ -286,7 +253,6 @@ Synoptic = (function () {
         };
 
         this.setClasses = function (type, name, classes) {
-            // console.log("setClasses " + name + " " + Object.keys(classes).filter(function (m) {return classes[m]}).join(", "));
             setClasses(type, name, classes);
         };
 
@@ -304,6 +270,12 @@ Synoptic = (function () {
         
         this.setTooltipHTML = function (html) {
             tooltip.setHTML(html);
+        }
+
+        this.getModels = function () {
+            var models = [];
+            svg.selectAll(".model").each(function (d) {models.append(d.model)});
+            return models;
         }
         
         // // preheat the getBBox cache (may take a few seconds)
