@@ -172,34 +172,50 @@ var View = (function () {
         window.addEventListener("keydown", function (ev) {
 
             var bbox = getViewBox()
+            console.log("keyCode " + ev.keyCode);
+            
             switch(ev.keyCode) {
                 
             case 37:
                 moveToBBox({
-                    x: bbox.x - bbox.width * .5, y: bbox.y,
+                    x: bbox.x - bbox.width * .25, y: bbox.y,
                     width: bbox.width, height: bbox.height
                 });
                 break;
             case 39:
                 moveToBBox({
-                    x: bbox.x + bbox.width * .5, y: bbox.y,
+                    x: bbox.x + bbox.width * .25, y: bbox.y,
                     width: bbox.width, height: bbox.height
                 });
                 break;
                 
             case 38:
                 moveToBBox({
-                    x: bbox.x, y: bbox.y - bbox.height * .5,
+                    x: bbox.x, y: bbox.y - bbox.height * .25,
                     width: bbox.width, height: bbox.height
                 });
                 break;                
             case 40:
                 moveToBBox({
-                    x: bbox.x, y: bbox.y + bbox.height * .5,
+                    x: bbox.x, y: bbox.y + bbox.height * .25,
                     width: bbox.width, height: bbox.height
                 });
                 break;
-                
+
+            case 187:
+                moveToBBox({
+                    x: bbox.x + bbox.width/6,
+                    y: bbox.y + bbox.height/6,
+                    width: bbox.width/1.5, height: bbox.height/1.5
+                })
+                break;
+            case 189:
+                moveToBBox({
+                    x: bbox.x - bbox.width/4,
+                    y: bbox.y - bbox.height/4,
+                    width: bbox.width * 1.5, height: bbox.height * 1.5
+                })
+                break;
             }
         });
         
