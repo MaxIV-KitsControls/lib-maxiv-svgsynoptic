@@ -20,6 +20,7 @@ Synoptic = (function () {
         view.addCallback(
             _.debounce(updateVisibility, 500, {leading: false}));
 
+        
         /* optional plugins */
         
         if (window.LayerTogglers) {
@@ -28,9 +29,13 @@ Synoptic = (function () {
         }
             
         if (window.Thumbnail)
-            var thumbnail = new Thumbnail(container, view, svg_copy, config.thumbnail);
-        if (window.Tooltip)
+            var thumbnail = new Thumbnail(container, view, svg_copy,
+                                          config.thumbnail);
+        
+        if (window.Tooltip) {
             var tooltip = new Tooltip(container);
+            view.addCallback(_.debounce(tooltip.close, 500, {leading: true}));
+        }
 
         
         /********** Utils **********/
