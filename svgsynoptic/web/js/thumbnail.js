@@ -54,6 +54,7 @@ Thumbnail = (function () {
                 .style("width", bbox.width / scale)
                 .style("height", bbox.height / scale)            
         }
+        updateIndicator(view.getViewBox());
         view.addCallback(updateIndicator);
                 
         // update thumbnail size when window geometry changes
@@ -65,7 +66,9 @@ Thumbnail = (function () {
                 .attr("height", inner_height);
             inner.style("height", inner_height);
             scale = width / inner_width;
+            updateIndicator(view.getViewBox());
         }
+        updateSize();
         window.addEventListener("resize", updateSize);
     }
 
