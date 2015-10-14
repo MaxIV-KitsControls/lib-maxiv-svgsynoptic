@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name="python-svgsynoptic",
-    version="1.0.0",
+    version="0.9.9",
     description="Widget for displaying a SVG synoptic.",
     author="Johan Forsberg",
     author_email="johan.forsberg@maxlab.lu.se",
