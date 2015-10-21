@@ -27,3 +27,7 @@ svg .layer.togglable {
     display: inline;
     pointer-events: auto;
 }
+
+svg .layer.hidden {
+    display: none;
+}

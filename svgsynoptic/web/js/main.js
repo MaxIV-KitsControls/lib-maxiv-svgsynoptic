@@ -111,8 +111,13 @@ window.addEventListener("load", function () {
             .classed("layer", true);
         layers
             .filter(function () {
+                // we don't want hidden or background layers to be
+                // togglable
                 var name = d3.select(this).attr("inkscape:label");
-                return !R.contains(name, ["background", "symbols"]);})
+                return !this.classList.contains("background") &&
+                    !this.classList.contains("hidden") &&
+                    !R.contains(name, ["background", "symbols"]);
+            })
             .classed("togglable", true);
 
         // activate the zoom levels (also in need of improvement)
