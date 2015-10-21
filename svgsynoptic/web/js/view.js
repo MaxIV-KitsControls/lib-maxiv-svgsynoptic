@@ -20,6 +20,7 @@ var View = (function () {
            points of zoomSteps also limits user zooming.  If the
            number of steps is smaller than the number of zoom levels
            in the SVG, those higher zoom levels will not be visible. */
+        config = config || {};
         zoomSteps = config.zoomSteps || [1, 10, 100];
         var maxZoom = zoomSteps.slice(-1)[0];
 
