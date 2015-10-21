@@ -1,0 +1,50 @@
+<!--
+    This is the file that is loaded by the widget and pulls 
+    all the SVG, JS and CSS files needed together.
+  -->
+
+<head>
+  <!-- This CSS file is always needed -->
+  <link rel="stylesheet" href="css/main.css" />
+  <!-- To use a local CSS file, prefix it like below to get the correct path. -->
+  <link rel="stylesheet" href="${path}/example1.css" />
+</head>
+
+
+<body oncontextmenu="return false;">
+  
+  <div id="view">                            
+    <!-- this is where our synoptic will go -->
+    <div class="overlay">Simple Example</div>
+  </div>
+
+  <!-- load some JavaScript libraries we use -->
+  <script src="js/libs/d3.js" charset="utf-8"></script>
+  <script src="js/libs/ramda.min.js"></script>
+  <script src="js/libs/lodash.min.js"></script>
+
+  <!-- load synoptic specific JS -->
+  <script src="js/util.js"></script>
+  <script src="js/view.js"></script>
+  <script src="js/synoptic.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- kick everything off when the page has loaded -->
+  <script type="text/javascript">
+                          
+    window.addEventListener("load", function () {
+
+        var container = document.getElementById("view");
+        
+        // loadSVG is a convenience method for loading a file.  Note
+        // that we need to give the absolute path to the file. ${path}
+        // will be replaced with the path to this HTML file.
+        loadSVG("${path}/example1.svg", container);
+                
+    });
+
+  </script>
+  
+</body>
+
+</html>
