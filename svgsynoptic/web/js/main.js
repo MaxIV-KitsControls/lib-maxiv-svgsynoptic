@@ -6,9 +6,9 @@ window.addEventListener("load", function () {
        may be a Qt widget or an ajax bridge; from here it all
        works the same, the API should be identical. */
     
-    function main (svg, config) {
+    function main (container, svg, config) {
 
-        var container = document.getElementById("view");
+        // var container = document.getElementById("view");
         config = config || {};
         
         console.log("config "  + JSON.stringify(config));
@@ -67,14 +67,20 @@ window.addEventListener("load", function () {
     }
 
     // Load the actual SVG into the page
-    function load (svg, config) {
+    function load (svg, element, config) {
         console.log("load " + svg);
+        element = element || window;
         d3.xml(svg, "image/svg+xml", function(xml) {
             var svg = d3.select(document.importNode(xml.documentElement, true));
             d3.ns.prefix.inkscape = "http://www.inkscape.org/namespaces/inkscape";
+
+            // Some preprocessing of the SVG may be needed
             sanitizeSVG(svg);
+
+            // Get information from the structure of the file
             activateSVG(svg);
-            main(svg, config);
+            
+            main(element, svg, config);
         });
     }
     window.loadSVG = load;
