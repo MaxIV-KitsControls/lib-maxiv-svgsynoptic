@@ -1,6 +1,8 @@
 = SVG synoptic =
 
 
+== Important ==
+
 This is a rewrite of the SVG synoptic library
 (https://github.com/johanfforsberg/taurus-svgsynoptic) intended to
 generalize and clean things up. It is mostly complete, but is not
@@ -9,3 +11,14 @@ important details of how it works have changed, and it is not
 immediately compatible with SVG files from old versions (although the
 changes should be easy to automate).  Updated documentation will
 follow shortly.
+
+
+== Installation ==
+
+$ python setup.py install --user
+
+
+== Examples ==
+
+$ cd examples
+$ python -m simple
