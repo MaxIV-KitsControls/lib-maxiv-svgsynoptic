@@ -1,7 +1,7 @@
-= SVG synoptic =
+# SVG synoptic #
 
 
-== Important ==
+## Important ##
 
 This is a rewrite of the SVG synoptic library
 (https://github.com/johanfforsberg/taurus-svgsynoptic) intended to
@@ -13,12 +13,12 @@ changes should be easy to automate).  Updated documentation will
 follow shortly.
 
 
-== Installation ==
+## Installation ##
 
-$ python setup.py install --user
+    $ python setup.py install --user
 
 
-== Examples ==
+## Examples ##
 
-$ cd examples
-$ python -m simple
+    $ cd examples
+    $ python -m simple
