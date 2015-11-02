@@ -29,8 +29,19 @@ var View = (function () {
         var svgMain = svg.select("g"),
             changeCallbacks = [];
 
-        var width = parseInt(svg.attr("width")),
-            height = parseInt(svg.attr("height"));
+        // Figure out the original size of the drawing.
+        // TODO: what's correct to use here? Looks like the
+        // width/height attrs of the SVG can be completely wrong in
+        // inkscape files at least. Is viewBox reliable?
+        var viewBox = svg.attr("viewBox");
+        if (viewBox) {
+            viewBox = viewBox.split(" ");
+            width = viewBox[2], height = viewBox[3];
+        } else {
+            var width = parseInt(svg.attr("width")),
+                height = parseInt(svg.attr("height"));
+        }
+        console.log("width " + width + ", height: " + height);
 
         var originalTransform = d3.transform(svgMain.attr("transform"));
         console.log("originalTransform: " + originalTransform)
