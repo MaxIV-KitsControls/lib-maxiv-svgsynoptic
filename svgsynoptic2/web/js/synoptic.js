@@ -35,9 +35,7 @@ Synoptic = (function () {
                                           config.thumbnail);
         
         if (window.Tooltip) {
-            var tooltip = new Tooltip(container);
-            // close the tooltip if the user moves the view
-            view.addCallback(_.debounce(tooltip.close, 500, {leading: true}));
+            var tooltip = new Tooltip(container, view);
         }
 
         if (window.Notes) {
@@ -68,7 +66,7 @@ Synoptic = (function () {
 
         // run any registered callbacks for a given event and item type
         function fireEventCallbacks(eventType, data) {
-            console.log("fireEventCallbacks " + eventType);
+            // console.log("fireEventCallbacks " + eventType);
             if (listeners[eventType])
                 listeners[eventType].forEach(function (cb) {cb(data);});
         }
