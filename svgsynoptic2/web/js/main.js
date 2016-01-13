@@ -37,14 +37,12 @@ window.addEventListener("load", function () {
                     // mouse has entered something
                     var models = data.model && data.model.join("\n") || "",
                         section = data.section || "";
-                    console.log("hover " + section + " - " + models);
                     Backend.hover(section, models);
                 }
             });
         
         // Event subscription updates
         synoptic.addEventCallback("subscribe", subscribe);
-
         
         Backend.setup(); 
 
