@@ -20,7 +20,10 @@ Synoptic = (function () {
         view.addCallback(_.debounce(updateVisibility, 500, {leading: false}));
 
         
-        /* optional plugins */
+        /********** optional plugins **********/
+        // The plugins are only added if they are loaded from the HTML file.
+        // TODO: Figure out a more flexible way to load these, to make
+        // it possible to add custom plugins.
         
         if (window.LayerTogglers) {
             var layers = new LayerTogglers(container, svg, config.layers);
@@ -33,9 +36,13 @@ Synoptic = (function () {
         
         if (window.Tooltip) {
             var tooltip = new Tooltip(container);
+            // close the tooltip if the user moves the view
             view.addCallback(_.debounce(tooltip.close, 500, {leading: true}));
         }
 
+        if (window.Notes) {
+            var notes = new Notes(container, view, []);
+        }
         
         /********** Utils **********/
 
@@ -48,8 +55,9 @@ Synoptic = (function () {
         }
 
         /********** Input events **********/
-
-        // this is where we keep all registered callbacks for things like mouseclicks
+        // this is where we keep all registered callbacks for things
+        // like mouseclicks
+        
         var listeners = {
             "click": [],
             "contextmenu": [],
@@ -261,17 +269,28 @@ Synoptic = (function () {
         }
 
         this.showTooltip = function () {
-            tooltip.open()
+            if (tooltip)
+                tooltip.open()
         }
 
         this.hideTooltip = function () {
-            tooltip.close();
+            if (tooltip)            
+                tooltip.close();
         }
         
         this.setTooltipHTML = function (html) {
-            tooltip.setHTML(html);
+            if (tooltip)            
+                tooltip.setHTML(html);
         }
 
+        this.setNotes = function (data) {
+            console.log("setNotes " +  data);
+            if (notes) {
+                var notedata = JSON.parse(data);
+                notes.setData(notedata);
+            }
+        }
+        
         this.getModels = function () {
             var models = [];
             svg.selectAll(".model").each(function (d) {models.append(d.model)});

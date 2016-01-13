@@ -50,7 +50,6 @@ var View = (function () {
 
         var elWidth, elHeight, scale0;
         setSize();
-
         
         function _updateDetailLevel(scale) {
             var relScale = scale / scale0, zoomLevel;
@@ -247,6 +246,17 @@ var View = (function () {
                 .attr("height", elHeight);
             svg.attr("viewBox", "0 0 " +  elWidth + " " + elHeight);
             scale0 = Math.min(elWidth / width, elHeight / height);
+        }
+
+        // return whether a given element is currently in view
+        this.isInView = function (bbox) {
+            var vbox = getViewBox();
+            var width = bbox.width || 0, height = bbox.height || 0;
+            var result = (bbox.x > vbox.x - width  &&
+                          bbox.y > vbox.y - height &&
+                          bbox.x < vbox.x + vbox.width &&
+                          bbox.y < vbox.y + vbox.height);
+            return result;
         }
 
         function updateSize () {

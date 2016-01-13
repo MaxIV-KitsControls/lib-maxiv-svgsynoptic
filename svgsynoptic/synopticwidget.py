@@ -89,7 +89,9 @@ class SynopticWidget(QtGui.QWidget):
         self.hovered.connect(self._on_hover)
 
         # Inject JSInterface into the JS global namespace as "Backend"
-        frame.addToJavaScriptWindowObject('Backend', self.js)
+        def addBackend():
+            frame.addToJavaScriptWindowObject('Backend', self.js)
+        view.connect(frame, QtCore.SIGNAL("javaScriptWindowObjectCleared()"), addBackend)
 
         # load the page
         # need to set the "base URL" for the webview to find the

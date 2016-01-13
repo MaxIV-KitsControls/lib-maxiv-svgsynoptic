@@ -16,6 +16,7 @@ class JSInterface(QtCore.QObject):
     rightclicked = QtCore.pyqtSignal(str, str)
     leftclicked = QtCore.pyqtSignal(str, str)
     hovered = QtCore.pyqtSignal(str, str)
+    plugin_command = QtCore.pyqtSignal(str, str, str)
     tooltip = QtCore.pyqtSignal(str)
     evaljs = QtCore.pyqtSignal(str)
     lock = Lock()
@@ -62,6 +63,14 @@ class JSInterface(QtCore.QObject):
     @QtCore.pyqtSlot()
     def setup(self):
         pass
+
+    @QtCore.pyqtSlot(str, str, str)
+    def run_plugin_command(self, plugin, cmd, args):
+        print "run_plugin_command", plugin, cmd, args
+        # Note: since we're using signals to loosely connect with the widget
+        # it's not possible to get a return value. But we probably don't
+        # want that anyway since it might block..?
+        self.plugin_command.emit(plugin, cmd, args)
 
     @QtCore.pyqtSlot(str)
     def load_svg(self, svg_file):

@@ -7,11 +7,11 @@ import json
 from PyQt4 import QtCore
 import PyTango
 from synopticwidget import SynopticWidget
-from taurus import Manager, Attribute
-from taurus.core.taurusbasetypes import TaurusSerializationMode
+from taurus import Attribute, Manager
+from taurus.core.taurusbasetypes import (AttrQuality, DataFormat,
+                                         TaurusEventType, TaurusSerializationMode)
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.panel import TaurusWidget, TaurusDevicePanel
-from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
+from taurus.qt.qtgui.panel import TaurusDevicePanel, TaurusWidget
 
 from taurusregistry import Registry
 
@@ -37,6 +37,7 @@ class TooltipUpdater(QtCore.QThread):
         except PyTango.DevFailed as e:
             print e
 
+
 def getStateClasses(state):
     "Return a state CSS class configuration"
     return dict((("state-%s" % name), s == state)
@@ -61,7 +62,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         self.set_url(image)
         self.registry = Registry(self.attribute_listener)
         self.registry.start()
-
+        self.js.plugin_command.connect(self.run_plugin_command)
         # self._tooltip_data = {}
         # self.tooltip_registry = Registry(self._tooltip_updater)
         # self.tooltip_registry.start()
@@ -70,11 +71,20 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return self._url
 
     def closeEvent(self, event):
-        "Clean things up when the difget is"
+        "Clean things up when the widget is closed"
         self.registry.clear()
         self.registry.stop()
         self.registry.wait()
         self.registry = None
+
+    def run_plugin_command(self, plugin, cmd, args):
+        try:
+            plugins = __import__("plugins.%s" % plugin, globals(), locals(), [cmd], -1)
+        except ImportError as e:
+            print "Could not initialize plugin '%s'!" % plugin
+            print e
+            return ""
+        return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models):
         print "handle_subscriptions", models
