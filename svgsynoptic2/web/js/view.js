@@ -168,14 +168,16 @@ var View = (function () {
             // into account. A bit fiddly, and may not be quite correct
             // particularly regarding scale... keep an eye on this!
             var origTranslate = originalTransform.translate,
-                origScale =  originalTransform.scale,      
+                origScale =  originalTransform.scale,     
                 translate = zoom.translate(), scale = zoom.scale(),
                 oTransX = origTranslate[0] * origScale[0] * scale,
                 oTransY = origTranslate[1] * origScale[1] * scale;
             
             return {
-                x: -(translate[0] + oTransX) / scale,
-                y: -(translate[1] + oTransY) / scale,
+                // x: -(translate[0] + oTransX) / scale,
+                // y: -(translate[1] + oTransY) / scale,
+                x: -translate[0] / scale,
+                y: -translate[1] / scale,                
                 width: elWidth / scale, height: elHeight / scale
             };
         };
@@ -184,43 +186,47 @@ var View = (function () {
 
             var bbox = getViewBox()
             console.log("keyCode " + ev.keyCode);
-            
+
             switch(ev.keyCode) {
-                
-            case 37:
+
+            // case 32:  // space
+            //     moveToBBox(bbox)
+            //     break;                
+
+            case 37:  // left arrow key
                 moveToBBox({
                     x: bbox.x - bbox.width * .25, y: bbox.y,
                     width: bbox.width, height: bbox.height
                 });
                 break;
-            case 39:
+            case 39:  // right arrow key
                 moveToBBox({
                     x: bbox.x + bbox.width * .25, y: bbox.y,
                     width: bbox.width, height: bbox.height
                 });
                 break;
                 
-            case 38:
+            case 38:  // up arrow key
                 moveToBBox({
                     x: bbox.x, y: bbox.y - bbox.height * .25,
                     width: bbox.width, height: bbox.height
                 });
                 break;                
-            case 40:
+            case 40:  // down arrow key
                 moveToBBox({
                     x: bbox.x, y: bbox.y + bbox.height * .25,
                     width: bbox.width, height: bbox.height
                 });
                 break;
 
-            case 187:
+            case 187:  // plus
                 moveToBBox({
                     x: bbox.x + bbox.width/6,
                     y: bbox.y + bbox.height/6,
                     width: bbox.width/1.5, height: bbox.height/1.5
                 })
                 break;
-            case 189:
+            case 189:  // minus
                 moveToBBox({
                     x: bbox.x - bbox.width/4,
                     y: bbox.y - bbox.height/4,
