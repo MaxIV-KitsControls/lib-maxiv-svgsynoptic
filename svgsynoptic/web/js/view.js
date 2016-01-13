@@ -232,6 +232,8 @@ var View = (function () {
         
         this.addCallback = function (cb) {
             changeCallbacks.push(cb);
+            // send out a first event immediately
+            setTimeout(function () {cb(getViewBox());});
         };
 
         function fireChangeCallbacks () {
@@ -273,7 +275,7 @@ var View = (function () {
             zoom.event(svg)
         }
         window.addEventListener("resize", updateSize);
-        
+
     }
 
     return View;
