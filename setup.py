@@ -10,6 +10,6 @@ setup(
     author_email="johan.forsberg@maxlab.lu.se",
     license="GPLv3",
     url="http://www.maxlab.lu.se",
-    packages=['svgsynoptic'],
+    packages=['svgsynoptic2'],
     package_data={'svgsynoptic': ['web/js/*.js', 'web/js/libs/*.js', 'web/css/*.css']}
 )
