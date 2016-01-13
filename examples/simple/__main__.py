@@ -7,7 +7,7 @@ import os
 
 from taurus.external.qt import Qt
 
-from svgsynoptic.synopticwidget import SynopticWidget
+from svgsynoptic2.synopticwidget import SynopticWidget
 
 
 class ExampleSynopticWidget(SynopticWidget):
