@@ -2,40 +2,42 @@ var Tooltip = (function () {
 
     
     // A simple tooltip (info box that pops up under the mouse)
+    // Relies on the backend to fill it with something.
     function _Tooltip(element, view) {
 
-        var tooltip = d3.select(element)
-            .append("div")
-            .classed("tooltip", true)
-            .style("display", "none");
+        var tooltip = document.createElement("div");
+        tooltip.classList.add("tooltip");
+        tooltip.style.display = "none";
+        element.appendChild(tooltip);
         
-        function move () {
-            // Crude attempt to make the tooltip fit on the screen... improve!
-            if (d3.event.clientX > window.innerWidth/2) {
-                tooltip
-                    .style("left", d3.event.clientX - 10 - tooltip.node().clientWidth)
-                    .style("top", d3.event.clientY + 10);
+        function move (event) {
+            
+            //Crude attempt to make the tooltip fit on the screen... improve!
+            if (event.clientX > window.innerWidth/2) {
+                tooltip.style.left = (event.clientX - 10 - tooltip.clientWidth) + "px";
+                tooltip.style.top = (event.clientY + 10) + "px";
             } else {
-                tooltip
-                    .style("left", d3.event.clientX + 10)
-                    .style("top", d3.event.clientY + 10);
+                tooltip.style.left = (event.clientX + 10) + "px";
+                tooltip.style.top = (event.clientY + 10) + "px";
             }
         };
 
         this.setHTML = function (html) {
-            tooltip.html(html);
+            tooltip.innerHTML = html;
         }
 
         this.open = function () {
-            tooltip.style("display", null);
-            d3.select(window)
-                .on("mousemove", move);
+            window.addEventListener("mousemove", move);
+            tooltip.style.display = null;
         }
         
         this.close = function () {
-            tooltip.style("display", "none");
-            d3.select(window).on("mousemove", null);
+            tooltip.style.display = "none";
+            window.removeEventListener("mousemove", move);
         };
+
+        // close the tooltip if the user moves the view?
+        //view.addCallback(_.debounce(close, 500, {leading: true});
 
     };
 
