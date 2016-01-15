@@ -11,5 +11,5 @@ setup(
     license="GPLv3",
     url="http://www.maxlab.lu.se",
     packages=['svgsynoptic2'],
-    package_data={'svgsynoptic': ['web/js/*.js', 'web/js/libs/*.js', 'web/css/*.css']}
+    package_data={'svgsynoptic2': ['web/js/*.js', 'web/js/libs/*.js', 'web/css/*.css']}
 )
