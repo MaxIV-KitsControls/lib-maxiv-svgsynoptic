@@ -1,0 +1,3 @@
+include svgsynoptic2/web/index.html
+recursive-include svgsynoptic2/web/js *
+recursive-include svgsynoptic2/web/css *
