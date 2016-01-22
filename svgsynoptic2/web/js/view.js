@@ -161,6 +161,18 @@ var View = (function () {
             }
         }
         this.moveTo = moveTo;
+
+        var vb = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+
+        // // A thing for debugging the view box
+        // vb.setAttribute("stroke", "yellow");
+        // vb.setAttribute("stroke-width", 10);
+        // vb.setAttribute("fill", "none");
+        // vb.setAttribute("width", 100)
+        // vb.setAttribute("height", 100)
+        // vb.setAttribute("x", 100)
+        // vb.setAttribute("y", 100)
+        // svgMain.node().appendChild(vb);
         
         var getViewBox = this.getViewBox = function () {
 
@@ -172,12 +184,17 @@ var View = (function () {
                 translate = zoom.translate(), scale = zoom.scale(),
                 oTransX = origTranslate[0] * origScale[0] * scale,
                 oTransY = origTranslate[1] * origScale[1] * scale;
+
+            // vb.setAttribute("x", -(translate[0] + oTransX) / scale);
+            // vb.setAttribute("y", -(translate[1] + oTransY) / scale);
+            // vb.setAttribute("width", elWidth / scale);
+            // vb.setAttribute("height", elHeight / scale);
             
             return {
-                // x: -(translate[0] + oTransX) / scale,
-                // y: -(translate[1] + oTransY) / scale,
-                x: -translate[0] / scale,
-                y: -translate[1] / scale,                
+                x: -(translate[0] + oTransX) / scale,
+                y: -(translate[1] + oTransY) / scale,
+                // x: -translate[0] / scale,
+                // y: -translate[1] / scale,                
                 width: elWidth / scale, height: elHeight / scale
             };
         };
