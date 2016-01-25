@@ -133,7 +133,6 @@ Synoptic = (function () {
         function setClasses(type, name, classes) {
             selectNodes(type, name)
                 .classed(classes)
-                .classed("updated", true);
         }        
 
         /********** Visibility **********/
@@ -210,7 +209,6 @@ Synoptic = (function () {
                     return !visible
                 })
                 .classed("hidden", true)
-                .classed("updated", false);
 
             sel  // show things that are in view
                 .filter(function (d) {
@@ -286,6 +284,13 @@ Synoptic = (function () {
             if (notes) {
                 var notedata = JSON.parse(data);
                 notes.setData(notedata);
+            }
+        }
+
+        this.newNote = function (data) {
+            if (notes) {
+                var notedata = JSON.parse(data);
+                notes.addNote(notedata);
             }
         }
         

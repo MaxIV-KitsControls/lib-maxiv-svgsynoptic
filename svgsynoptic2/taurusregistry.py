@@ -17,11 +17,12 @@ class Registry(QtCore.QThread):
 
     lock = Lock()
 
-    def __init__(self, callback):
+    def __init__(self, event_callback, unsubscribe_callback):
         QtCore.QThread.__init__(self)
         self.listeners = {}
-        self.callback = callback
-        self._attributes = None
+        self.event_callback = event_callback
+        self.unsubscribe_callback = unsubscribe_callback
+        self._attributes = set()
         self._config = {}
         self._last_event = TTLDict(default_ttl=10)
         self.attribute_validator = AttributeNameValidator()
@@ -34,7 +35,7 @@ class Registry(QtCore.QThread):
         while not self.stopped.is_set():
             time.sleep(0.5)
             if self._attributes:
-                attributes, self._attributes = self._attributes, None
+                attributes, self._attributes = self._attributes, set()
                 with self.lock:
                     self._update(attributes)
 
@@ -68,9 +69,9 @@ class Registry(QtCore.QThread):
                     last_event = self._last_event[model]
                     if (evt_value.value != last_event.value and
                         evt_value.quality != last_event.quality):
-                        self.callback(model, evt_value)
+                        self.event_callback(model, evt_value)
                 else:
-                    self.callback(model, evt_value)
+                    self.event_callback(model, evt_value)
                 self._last_event[model] = evt_value
             else:
                 listener = self.listeners.pop(model)
@@ -94,7 +95,7 @@ class Registry(QtCore.QThread):
                 # meaning we got a new list of subscriptions, so
                 # no point in continuing with this one.
                 return
-            self.listeners.pop(attr).removeListener(self.callback)
+            self.listeners.pop(attr).removeListener(self.event_callback)
             self._last_event.pop(attr, None)
 
         for attr in new_attrs:
@@ -102,13 +103,23 @@ class Registry(QtCore.QThread):
                 return
             try:
                 tattr = self.listeners[attr] = Attribute(attr)
-                tattr.addListener(self.callback)
+                tattr.addListener(self.event_callback)
             except PyTango.DevFailed as e:
                 print "Failed to setup listener for", attr, e
+
+        self.unsubscribe_callback(old_attrs)
+
+    def get_listener(self, model):
+        if model in self.listeners:
+            return self.listeners[model]
+        for attr in self.listeners.values():
+            if attr.getNormalName().lower() == model.lower():
+                return attr
 
     def stop(self):
         self.stopped.set()
 
     def clear(self):
-        self._attributes = None
+        self._attributes.clear()
+        self._last_event.clear()
         self._update()

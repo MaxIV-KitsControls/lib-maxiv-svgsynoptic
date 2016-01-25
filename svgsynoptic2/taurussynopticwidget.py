@@ -12,6 +12,7 @@ from taurus.core.taurusbasetypes import (AttrQuality, DataFormat,
                                          TaurusEventType, TaurusSerializationMode)
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.panel import TaurusDevicePanel, TaurusWidget
+from taurus.qt.qtgui.application import TaurusApplication
 
 from taurusregistry import Registry
 
@@ -38,10 +39,15 @@ class TooltipUpdater(QtCore.QThread):
             print e
 
 
-def getStateClasses(state):
+def getStateClasses(state=None):
     "Return a state CSS class configuration"
     return dict((("state-%s" % name), s == state)
                 for name, s in PyTango.DevState.names.items())
+
+# precalculate since this is done quite a lot
+STATE_CLASSES = dict((state, json.dumps(getStateClasses(state)))
+                     for name, state in PyTango.DevState.names.items())
+STATE_CLASSES[None] = json.dumps(getStateClasses())
 
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
@@ -60,12 +66,19 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     def setModel(self, image, section=None):
         print "setModel", image
         self.set_url(image)
-        self.registry = Registry(self.attribute_listener)
+        self.registry = Registry(self.attribute_listener,
+                                 self.unsubscribe_listener)
         self.registry.start()
         self.js.plugin_command.connect(self.run_plugin_command)
+        self.js.hovered.connect(self._hovered)
         # self._tooltip_data = {}
         # self.tooltip_registry = Registry(self._tooltip_updater)
         # self.tooltip_registry.start()
+
+    def _hovered(self, sec, mods):
+        print "hovered", sec, type(mods)
+        attr = self.registry.get_listener(str(mods))
+        print attr
 
     def getModel(self):
         return self._url
@@ -91,7 +104,17 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         if self.registry:
             self.registry.subscribe(models)
 
+    def unsubscribe_listener(self, unsubscribed):
+        """Tell the synoptic about unsubscribed models. This is
+        needed because it's all asunchronous so it cannot be assumed
+        that a model is really unsubscribed until it is."""
+        classes = STATE_CLASSES[None]
+        for model in unsubscribed:
+            self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                             (model, classes))
+
     def attribute_listener(self, evt_src, evt_type, evt_value):
+        "Handle events"
         if evt_type == TaurusEventType.Error:
             return  # handle errors somehow
         if evt_type == TaurusEventType.Config:
@@ -101,12 +124,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         if evt_value.data_format == DataFormat._0D:
             # we'll ignore spectrum/image attributes
             if isinstance(value, PyTango._PyTango.DevState):
-                classes = getStateClasses(value)
+                # classes = getStateClasses(value)
+                classes = STATE_CLASSES[value]
                 device, attr = model.rsplit("/", 1)
                 self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
-                                 (device, json.dumps(classes)))
+                                 (device, classes))
                 self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
-                                 (device, json.dumps(classes)))
+                                 (device, classes))
             else:
                 text = evt_src.displayValue(value)
                 unit = evt_src.getConfig().unit
@@ -130,14 +154,16 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.unselect_all()
 
     def get_device_panel(self, device):
-        """Override to change which panel is opened for a given
-        device name. Return a widget class, or None if you're
-        handling the panel yourself"""
-        return TaurusDevicePanel
+        """Override to change which panel is opened for a given device
+        name. Return a widget, or None if you're handling the panel
+        yourself. TaurusDevicePanel is a good fallback.
+        """
+        w = TaurusDevicePanel()
+        w.setModel(device)
+        return w
 
     def on_rightclick(self, kind, name):
-        """We'll try to open a generic Taurus panel for a clicked
-        device. Override this for more custom behavior!"""
+        "The default behavior for right clicking a device is to open a panel."
         if kind == "model" and self.registry.device_validator.isValid(name):
             if name in self._panels:
                 widget = self._panels[name]
@@ -148,11 +174,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 return
 
             # check if we recognise the class of the device
-            panel_class = self.get_device_panel(name)
-            if not panel_class:
+            widget = self.get_device_panel(name)
+            if not widget:
                 return
-            widget = panel_class()
-            widget.setModel(name)
             widget.closeEvent = lambda _: self._cleanup_panel(widget)
             self._panels[name] = widget
             widget.show()
@@ -227,8 +251,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 if __name__ == '__main__':
     import sys
     print sys.argv[1]
-    qapp = Qt.QApplication([])
+    # qapp = Qt.QApplication([])
+    app = TaurusApplication()
     sw = TaurusSynopticWidget()
+    app.focusChanged.connect(sw.onFocus)
     sw.setModel(sys.argv[1])
     sw.show()
-    qapp.exec_()
+    app.exec_()
