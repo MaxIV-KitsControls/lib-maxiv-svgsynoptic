@@ -1,5 +1,5 @@
 from threading import Lock, Event
-import time
+from time import sleep
 
 from PyQt4 import QtCore
 from taurus import Attribute
@@ -17,11 +17,12 @@ class Registry(QtCore.QThread):
 
     lock = Lock()
 
-    def __init__(self, event_callback, unsubscribe_callback):
+    def __init__(self, event_callback, unsubscribe_callback, period=0.5):
         QtCore.QThread.__init__(self)
         self.listeners = {}
         self.event_callback = event_callback
         self.unsubscribe_callback = unsubscribe_callback
+        self.period = period
         self._attributes = set()
         self._config = {}
         self._last_event = TTLDict(default_ttl=10)
@@ -33,7 +34,7 @@ class Registry(QtCore.QThread):
     def run(self):
         "A simple loop checking for changes to the attribute list"
         while not self.stopped.is_set():
-            time.sleep(0.5)
+            sleep(self.period)
             if self._attributes:
                 attributes, self._attributes = self._attributes, set()
                 with self.lock:
