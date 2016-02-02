@@ -2,6 +2,7 @@
 A Taurus based TANGO backend for the SVG synoptic.
 """
 
+from inspect import isclass
 import json
 
 from PyQt4 import QtCore
@@ -155,12 +156,11 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def get_device_panel(self, device):
         """Override to change which panel is opened for a given device
-        name. Return a widget, or None if you're handling the panel
-        yourself. TaurusDevicePanel is a good fallback.
+        name. Return a widget class, a widget, or None if you're
+        handling the panel yourself. TaurusDevicePanel is a reasonable
+        fallback.
         """
-        w = TaurusDevicePanel()
-        w.setModel(device)
-        return w
+        return TaurusDevicePanel
 
     def on_rightclick(self, kind, name):
         "The default behavior for right clicking a device is to open a panel."
@@ -175,8 +175,22 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
             # check if we recognise the class of the device
             widget = self.get_device_panel(name)
+
             if not widget:
+                # assume that the widget is handled somewhere else
                 return
+            if isclass(widget):
+                # assume it's a widget class
+                print widget
+                widget = widget()
+                try:
+                    # try to set the model
+                    widget.setModel(name)
+                except AttributeError:
+                    pass
+
+            widget.setWindowTitle(name)
+            # monkey patch to cleanup on close...
             widget.closeEvent = lambda _: self._cleanup_panel(widget)
             self._panels[name] = widget
             widget.show()
