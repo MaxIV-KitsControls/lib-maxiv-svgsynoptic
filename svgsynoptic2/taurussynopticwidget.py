@@ -192,7 +192,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             widget.setWindowTitle(name)
             # monkey patch to cleanup on close...
             widget.closeEvent = lambda _: self._cleanup_panel(widget)
-            self._panels[str(w.getModel())] = widget
+            self._panels[str(widget.getModel())] = widget
             widget.show()
 
     def _cleanup_panel(self, w):
