@@ -14,13 +14,21 @@ Thumbnail = (function () {
         var outer = d3.select(container)
             .append("div")
             .classed("thumbnail", true);
-        
-        if (config.size)
-            outer.style("width", config.size);
 
+        // allow the user to configure the size of the thumbnail.
+        // Note that only the height can be set. Seems more likely that users
+        // will enlarge the window horizontally, so it's more important that the
+        // thumbnail does not grow huge then. But the logic is still lacking,
+        // we should perhaps limit the *area* of the thumbnail instead?
+        if (config.size) {
+            outer.style("height", config.size);
+        } else {
+            outer.style("height", "20%");
+        }
+        
         var inner = outer.append("div")
             .classed("inner", true);
-        
+
         var indicator = inner.append("div")
             .classed("indicator", true);
 
@@ -30,6 +38,12 @@ Thumbnail = (function () {
             .style("display", "none");
         thumb.select("#background g.zoom.level0")
             .style("display", "inline");        
+
+        var toggle = d3.select(container)
+            .append("div")
+            .classed("thumbnail-toggle", true)
+            .text("-")
+            .attr("title", "Hide/show thumbnail")
         
         var width = thumb.attr("width"),
             height = thumb.attr("height"),
@@ -59,17 +73,28 @@ Thumbnail = (function () {
                 
         // update thumbnail size when window geometry changes
         function updateSize () {
-            var inner_width = inner.node().offsetWidth,
-                inner_height = inner_width / aspect;
+            var inner_height = inner.node().offsetHeight,
+                inner_width = inner_height * aspect;
             thumb.attr("viewBox", "0 0 " + width + " " + height)
                 .attr("width", inner_width)
                 .attr("height", inner_height);
-            inner.style("height", inner_height);
+            inner.style("width", inner_width);
             scale = width / inner_width;
             updateIndicator(view.getViewBox());
         }
         updateSize();
         window.addEventListener("resize", updateSize);
+
+        function toggleVisibility () {
+            var isInvisible = toggle.classed("invisible");
+            outer.style("visibility", isInvisible? "visible" : "hidden")
+            toggle
+                .classed("invisible", !isInvisible)
+                .text(isInvisible? "-" : "+")
+
+        }
+        toggle.on("click", toggleVisibility);
+        
     }
 
     return _Thumbnail;
