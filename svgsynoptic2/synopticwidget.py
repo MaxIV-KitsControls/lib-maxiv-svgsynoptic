@@ -8,7 +8,7 @@ import logging
 import os
 
 from PyQt4 import Qt, QtCore, QtGui
-from PyQt4.QtWebKit import QWebPage, QWebView
+from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings, QWebInspector
 
 from jsinterface import JSInterface
 
@@ -49,18 +49,23 @@ class SynopticWidget(QtGui.QWidget):
 
     def _setup_ui(self, url=None, section=None):
         self.hbox = hbox = QtGui.QHBoxLayout(self)
-        hbox.setContentsMargins(0, 0, 0, 0)
-        hbox.layout().setContentsMargins(0, 0, 0, 0)
+        self.hbox.setContentsMargins(0, 0, 0, 0)
+        self.hbox.layout().setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.hbox)
         if url:
-            hbox.addWidget(self._create_view(url, section))
+            self.set_url(url, section)
 
-        self.setLayout(hbox)
-
-    def set_url(self, url):
+    def set_url(self, url, section=None):
         # TODO: probably breaks things if the url is already set
         self._url = url
+        splitter = QtGui.QSplitter(self)
+        splitter.setOrientation(QtCore.Qt.Vertical)
+        self.hbox.addWidget(splitter)
+        view = self._create_view(url, section)
+        inspector = self._setup_inspector(view)
+        splitter.addWidget(view)
+        splitter.addWidget(inspector)
         print "set_url", url
-        self.hbox.addWidget(self._create_view(url))
 
     def _create_view(self, html=None, section=None):
         "Create the webview that will display the synoptic itself"
@@ -107,6 +112,25 @@ class SynopticWidget(QtGui.QWidget):
             view.setHtml(text, base_url)
 
         return view
+
+    def _setup_inspector(self, view):
+
+        """Create a WebInspector widget connected to the WebView. This allows inspecting
+        the DOM, debugging javascript, logging, etc. Can be toggled using F12."""
+
+        page = view.page()
+        page.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+        inspector = QWebInspector(self)
+        inspector.setPage(page)
+
+        shortcut = QtGui.QShortcut(self)
+        shortcut.setKey(QtCore.Qt.Key_F12)
+
+        def toggle_inspector():
+            inspector.setVisible(not inspector.isVisible())
+        shortcut.activated.connect(toggle_inspector)
+        inspector.setVisible(False)
+        return inspector
 
     def _handle_subscriptions(self, models):
         # we get the subscribed models as a comma separated list from Qt,
