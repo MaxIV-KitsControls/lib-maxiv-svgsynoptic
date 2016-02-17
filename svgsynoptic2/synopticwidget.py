@@ -58,13 +58,12 @@ class SynopticWidget(QtGui.QWidget):
     def set_url(self, url, section=None):
         # TODO: probably breaks things if the url is already set
         self._url = url
-        splitter = QtGui.QSplitter(self)
-        splitter.setOrientation(QtCore.Qt.Vertical)
-        self.hbox.addWidget(splitter)
+        self.splitter = QtGui.QSplitter(self)
+        self.splitter.setOrientation(QtCore.Qt.Vertical)
+        self.hbox.addWidget(self.splitter)
         view = self._create_view(url, section)
-        inspector = self._setup_inspector(view)
-        splitter.addWidget(view)
-        splitter.addWidget(inspector)
+        self._setup_inspector(view)
+        self.splitter.addWidget(view)
         print "set_url", url
 
     def _create_view(self, html=None, section=None):
@@ -118,19 +117,22 @@ class SynopticWidget(QtGui.QWidget):
         """Create a WebInspector widget connected to the WebView. This allows inspecting
         the DOM, debugging javascript, logging, etc. Can be toggled using F12."""
 
+        self._inspector = None
         page = view.page()
-        page.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
-        inspector = QWebInspector(self)
-        inspector.setPage(page)
+
+        def toggle_inspector():
+            if self._inspector:
+                self._inspector.setVisible(not self._inspector.isVisible())
+            else:
+                # create the inspector "on demand"
+                page.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+                self._inspector = QWebInspector(self)
+                self._inspector.setPage(page)
+                self.splitter.addWidget(self._inspector)
 
         shortcut = QtGui.QShortcut(self)
         shortcut.setKey(QtCore.Qt.Key_F12)
-
-        def toggle_inspector():
-            inspector.setVisible(not inspector.isVisible())
         shortcut.activated.connect(toggle_inspector)
-        inspector.setVisible(False)
-        return inspector
 
     def _handle_subscriptions(self, models):
         # we get the subscribed models as a comma separated list from Qt,
