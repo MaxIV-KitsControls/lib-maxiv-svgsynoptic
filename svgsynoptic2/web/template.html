@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<html xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+
+<head>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/layers.css" />
+  <link rel="stylesheet" href="css/tango.css" />
+  <link rel="stylesheet" href="css/tooltip.css" />
+
+</head>
+
+
+<body oncontextmenu="return false;">
+
+  <div id="view">
+    <img class="logo" src="images/maxiv_logo.png"></div>
+  </div>
+
+  <!-- libs  -->
+  <script src="js/libs/d3.js" charset="utf-8"></script>
+  <script src="js/libs/ramda.min.js"></script>
+  <script src="js/libs/lodash.min.js"></script>
+
+  
+  <!-- main synoptic stuff  -->  
+  <script src="js/util.js"></script>
+  <script src="js/view.js"></script>
+  <script src="js/synoptic.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- plugins  -->
+  <script src="js/layers.js"></script>
+  <script src="js/tooltip.js"></script>
+  
+  <script type="text/javascript">
+
+    window.addEventListener("load", function () {
+
+        console.log("test");
+
+        // Synoptic configuration. Split up across the different
+        // parts or "plugins".
+        var config = {
+            view: {
+                // see view.js for documentation
+                zoomSteps: [1, 5]
+            },
+            layers: {
+                // Names of layers that should be hidden at start
+                hidden: []
+            }
+        };
+        var container = document.getElementById("view");
+        // loadSVG is a convenience method for loading a file.  Note
+        // that we need to give the absolute path to the file. ${path}
+        // will be replaced with the path to this HTML file.        
+        loadSVG("${svgfile}", container, ${config});
+    });
+  </script>
+  
+</body>
+
+</html>
