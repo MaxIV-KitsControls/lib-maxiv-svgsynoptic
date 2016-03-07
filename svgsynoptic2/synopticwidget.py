@@ -101,7 +101,7 @@ class SynopticWidget(QtGui.QWidget):
         # need to set the "base URL" for the webview to find the
         # resources (js, css).
         base_url = QtCore.QUrl().fromLocalFile(
-            os.path.dirname(__file__) + "/web/")
+            os.path.abspath(os.path.dirname(__file__)) + "/web/")
 
         # some ugly magic to get the path to the SVG file right. It
         # needs to be absolute because local paths go to the base URL.
