@@ -114,13 +114,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
                              (model, classes))
 
-    def attribute_listener(self, evt_src, evt_type, evt_value):
+    def attribute_listener(self, model, evt_src, evt_type, evt_value):
         "Handle events"
         if evt_type == TaurusEventType.Error:
             return  # handle errors somehow
         if evt_type == TaurusEventType.Config:
             return  # need to do something here too
-        model = evt_src.getNormalName()
         value = evt_value.value
         if evt_value.data_format == DataFormat._0D:
             # we'll ignore spectrum/image attributes
@@ -132,10 +131,17 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                  (device, classes))
                 self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
                                  (device, classes))
+                self.js.evaluate("synoptic.setText('model', %r, '%s')" % (model, value))
+            elif isinstance(value, bool):
+                classes = {"boolean-true": value, "boolean-false": not value}
+                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                                 (model, json.dumps(classes)))
+                self.js.evaluate("synoptic.setText('model', %r, '%s')" %
+                                 (model, value))
             else:
                 text = evt_src.displayValue(value)
                 unit = evt_src.getConfig().unit
-                if unit == "No unit":
+                if unit in (None, "No unit"):
                     unit = ""
                 self.js.evaluate("synoptic.setText('model', %r, '%s %s')" %
                                  (model, text, unit))
@@ -221,7 +227,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                     all_models.append(model + "/Status")
                 else:
                     all_models.append(model)
-            self.tooltip_registry.subscribe(all_models)
+            try:
+                self.tooltip_registry.subscribe(all_models)
+            except ValueError:
+                pass
             self._tooltip_data = dict((str(model), {}) for model in models)
         else:
             self.tooltip_registry.subscribe()

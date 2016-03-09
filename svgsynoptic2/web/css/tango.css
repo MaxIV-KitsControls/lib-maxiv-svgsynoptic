@@ -38,3 +38,12 @@ svg .state-ALARM {
     stroke: white;
     fill: rgb(255,140,0) !important;
 }
+
+svg .boolean-true {
+    fill: green !important;
+}
+
+svg .boolean-false {
+    fill: red !important;
+}
+

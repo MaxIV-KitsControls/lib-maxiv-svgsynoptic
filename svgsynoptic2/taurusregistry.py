@@ -3,8 +3,14 @@ from time import sleep
 
 from PyQt4 import QtCore
 from taurus import Attribute
-from taurus.core.taurusvalidator import (AttributeNameValidator,
-                                         DeviceNameValidator)
+try:
+    from taurus.core.tango.tangovalidator import (TangoAttributeNameValidator,
+                                                  TangoDeviceNameValidator)
+    from taurus.core.evaluation.evalvalidator import EvaluationAttributeNameValidator
+except ImportError:
+    from taurus.core.taurusvalidator import (AttributeNameValidator as TangoAttributeNameValidator,
+                                             DeviceNameValidator as TangoDeviceNameValidator)
+    from taurus.core.evaluation import EvaluationAttributeNameValidator
 from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
 import PyTango
 
@@ -20,14 +26,16 @@ class Registry(QtCore.QThread):
     def __init__(self, event_callback, unsubscribe_callback, period=0.5):
         QtCore.QThread.__init__(self)
         self.listeners = {}
+        self.inverse_listeners = {}
         self.event_callback = event_callback
         self.unsubscribe_callback = unsubscribe_callback
         self.period = period
         self._attributes = set()
         self._config = {}
         self._last_event = TTLDict(default_ttl=10)
-        self.attribute_validator = AttributeNameValidator()
-        self.device_validator = DeviceNameValidator()
+        self.attribute_validator = TangoAttributeNameValidator()
+        self.device_validator = TangoDeviceNameValidator()
+        self.eval_validator = EvaluationAttributeNameValidator()
         self.lock = Lock()
         self.stopped = Event()
 
@@ -43,14 +51,13 @@ class Registry(QtCore.QThread):
     def subscribe(self, models=[]):
         attrs = set()
         for model in models:
-            if self.attribute_validator.isValid(model):
+            if (self.attribute_validator.isValid(model) or
+                    self.eval_validator.isValid(model)):
                 attrs.add(model)
             elif self.device_validator.isValid(model):
                 attrs.add(model + "/State")
             else:
-                raise ValueError(
-                    "Invalid model %s; must be Tango device or attribute!" %
-                    model)
+                print "Invalid model %s; must be Tango device or attribute!" % model
         self._attributes = attrs
 
     def get_value(self, model):
@@ -61,27 +68,10 @@ class Registry(QtCore.QThread):
     def get_config(self, model):
         return self._config.get(model)
 
-    def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type in (PyTango.EventType.CHANGE_EVENT,
-                        PyTango.EventType.PERIODIC_EVENT):
-            model = evt_src.getNormalName()
-            if model in self.listeners:
-                if model in self._last_event:
-                    last_event = self._last_event[model]
-                    if (evt_value.value != last_event.value and
-                        evt_value.quality != last_event.quality):
-                        self.event_callback(model, evt_value)
-                else:
-                    self.event_callback(model, evt_value)
-                self._last_event[model] = evt_value
-            else:
-                listener = self.listeners.pop(model)
-                listener.removeListener(self.handleEvent)
-        elif evt_type == TaurusEventType.Config:
-            model = evt_src.getNormalName().split("?")[0]
-
-            self._config[model] = evt_value
-        # TODO: Config events, errors..?
+    def handle_event(self, evt_src, *args):
+        model = self.inverse_listeners.get(evt_src)
+        if model:
+            self.event_callback(model, evt_src, *args)
 
     def _update(self, attributes=set()):
 
@@ -96,19 +86,35 @@ class Registry(QtCore.QThread):
                 # meaning we got a new list of subscriptions, so
                 # no point in continuing with this one.
                 return
-            self.listeners.pop(attr).removeListener(self.event_callback)
+            self.remove_listener(attr)
             self._last_event.pop(attr, None)
 
         for attr in new_attrs:
             if self._attributes:
                 return
             try:
-                tattr = self.listeners[attr] = Attribute(attr)
-                tattr.addListener(self.event_callback)
+                self.add_listener(attr)
             except PyTango.DevFailed as e:
                 print "Failed to setup listener for", attr, e
 
         self.unsubscribe_callback(old_attrs)
+
+    def add_listener(self, model):
+        listener = self.listeners[model] = Attribute(model)
+        self.inverse_listeners[listener] = model
+        listener.addListener(self.handle_event)
+        return listener
+
+    def remove_listener(self, model):
+        listener = self.listeners.pop(model)
+        self.inverse_listeners.pop(listener)
+        listener.removeListener(self.handle_event)
+
+    def _make_callback(self, model):
+        def callback(*args):
+            self.event_callback(model, *args)
+        self._callbacks[model] = callback
+        return callback
 
     def get_listener(self, model):
         if model in self.listeners:
