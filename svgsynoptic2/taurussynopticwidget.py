@@ -122,15 +122,23 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             return  # need to do something here too
         value = evt_value.value
         if evt_value.data_format == DataFormat._0D:
-            # we'll ignore spectrum/image attributes
+            # we'll ignore spectrum/image attributes for now
             if isinstance(value, PyTango._PyTango.DevState):
-                # classes = getStateClasses(value)
                 classes = STATE_CLASSES[value]
                 device, attr = model.rsplit("/", 1)
-                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
-                                 (device, classes))
-                self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
-                                 (device, classes))
+                if attr.lower() == "state":
+                    # this is the normal "State" attribute of the
+                    # device. Let's set the color of device models
+                    # too, for convenience.
+                    self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                                     (device, classes))
+                    self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
+                                     (device, classes))
+                else:
+                    # Apparently it's an attribute of type DevState
+                    # but it is not the normal "State" attribute.
+                    self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                                     (model, classes))
                 self.js.evaluate("synoptic.setText('model', %r, '%s')" % (model, value))
             elif isinstance(value, bool):
                 classes = {"boolean-true": value, "boolean-false": not value}
