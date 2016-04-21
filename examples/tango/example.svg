@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 744.09448819 1052.3622047"
+   id="svg6521"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="example.svg">
+  <defs
+     id="defs6523" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="239.97865"
+     inkscape:cy="770.32859"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer7"
+     showgrid="false"
+     inkscape:window-width="1366"
+     inkscape:window-height="731"
+     inkscape:window-x="0"
+     inkscape:window-y="37"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata6526">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:inline">
+    <g
+       inkscape:groupmode="layer"
+       id="layer4"
+       inkscape:label="test">
+      <rect
+         style="display:inline;opacity:1;fill:#008080;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect7070"
+         width="151.42857"
+         height="108.57143"
+         x="131.42857"
+         y="212.3622">
+        <desc
+           id="desc4722">model=eval://{sys/tg_test/1/ampli}+{sys/tg_test/1/double_scalar}&gt;100</desc>
+      </rect>
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="layer6"
+       inkscape:label="background">
+      <rect
+         style="opacity:0.27399998;fill:#ffcc00;fill-opacity:1;stroke:#000000;stroke-width:10;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect15552"
+         width="507.09659"
+         height="652.55853"
+         x="54.548237"
+         y="137.164" />
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="layer2"
+       inkscape:label="stuff"
+       style="display:inline">
+      <g
+         inkscape:groupmode="layer"
+         id="layer5"
+         inkscape:label="zoom1"
+         style="display:inline">
+        <rect
+           style="display:inline;opacity:1;fill:#ffd42a;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           id="rect7074"
+           width="125.71429"
+           height="125.71429"
+           x="128.57143"
+           y="655.21936" />
+      </g>
+      <g
+         inkscape:groupmode="layer"
+         id="layer3"
+         inkscape:label="zoom0"
+         style="display:inline">
+        <rect
+           style="display:inline;opacity:1;fill:#be0000;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           id="rect7072"
+           width="128.57143"
+           height="122.85714"
+           x="265.71429"
+           y="463.79077">
+          <desc
+             id="desc7138">model=eval://str({sys/tg_test/1/State})</desc>
+        </rect>
+      </g>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:semi-condensed;font-size:22.5px;line-height:100%;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Semi-Condensed';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="280"
+         y="425.21936"
+         id="text7372"
+         sodipodi:linespacing="100%"><desc
+           id="desc7376">model=eval://[&quot;test&quot;, &quot;hej&quot;, &quot;korv&quot;, &quot;fisk&quot;][{i-b080603/pss/plc-01/ns_i_l1_searchstate_s}]</desc><tspan
+           sodipodi:role="line"
+           id="tspan7374"
+           x="280"
+           y="425.21936">test</tspan></text>
+      <text
+         sodipodi:linespacing="100%"
+         id="text15503"
+         y="324.20413"
+         x="389.0965"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:semi-condensed;font-size:22.5px;line-height:100%;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Semi-Condensed';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         xml:space="preserve"><desc
+           id="desc15505">model=eval://{sys/tg_test/1/State}==10</desc><tspan
+           y="324.20413"
+           x="389.0965"
+           id="tspan15507"
+           sodipodi:role="line">test</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:semi-condensed;font-size:22.5px;line-height:100%;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Semi-Condensed';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="415.36047"
+         y="253.49345"
+         id="text15509"
+         sodipodi:linespacing="100%"><desc
+           id="desc15511">model=eval://&quot;%.2f&quot;%{sys/tg_test/1/ampli}</desc><tspan
+           sodipodi:role="line"
+           id="tspan15513"
+           x="415.36047"
+           y="253.49345">test</tspan></text>
+    </g>
+    <g
+       inkscape:groupmode="layer"
+       id="layer7"
+       inkscape:label="symbols">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:semi-condensed;font-size:22.5px;line-height:100%;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Semi-Condensed';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="145.46198"
+         y="90.696983"
+         id="text15555"
+         sodipodi:linespacing="100%"><tspan
+           sodipodi:role="line"
+           id="tspan15557"
+           x="145.46198"
+           y="90.696983">Detta syns inte i synoptic</tspan></text>
+    </g>
+  </g>
+</svg>

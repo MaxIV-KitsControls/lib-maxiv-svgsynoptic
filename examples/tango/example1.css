@@ -1,0 +1,11 @@
+.off {
+    background: gray;
+}
+.on {
+    background: green;
+}
+.overlay {
+    font-size: 30pt;
+    position: absolute;
+    z-index: 100;
+}
