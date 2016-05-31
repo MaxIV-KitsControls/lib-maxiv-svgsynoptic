@@ -47,9 +47,13 @@ Synoptic = (function () {
         var selectNodes = function (type, name) {
             // return a d3 selection containing all elements of that
             // has a "type" (e.g. model) called "name"
+            // Note that we can't make any assumptions about the letter casing
+            // of the model names, as there can be differences between what's
+            // used in the database and in the SVG. So we must normalize to compare.
             return svg.selectAll("." + type)
-                .filter(function (d) {return (d[type] == name) ||
-                                      (d[type].indexOf(name) != -1);});
+                .filter(function (d) {return (d[type] == name.toLowerCase()) ||
+                                      (d[type].map(function (n) {return n.toLowerCase()})
+                                       .indexOf(name.toLowerCase()) != -1);});
         }
 
         /********** Input events **********/
@@ -115,7 +119,6 @@ Synoptic = (function () {
         function selectModel (model) {
             var node = selectNodes("model", model).node(),
                 bbox = getBBox("model", model);
-
             console.log("selectModel " + model + " " +
                         bbox.x + " " + bbox.y + " " +
                         bbox.width + " " + bbox.height)
@@ -166,7 +169,7 @@ Synoptic = (function () {
             }
         }
         // this gets used a lot, so we memoize it
-        var getBBox = _.memoize(_getBBox, function (a, b) {return a + b;});
+        var getBBox = _.memoize(_getBBox, function (a, b) {return (a + ":" + b).toLowerCase();});
 
         // return a selection containing the devices in the currently
         // shown layers and zoom levels.
@@ -244,10 +247,10 @@ Synoptic = (function () {
         
         this.zoomTo = zoomTo;
         
-        this.select = function (type, name) {
+        this.select = function (type, names) {
             switch (type) {
             case "model":
-                selectModel(name);
+                names.forEach(selectModel);
                 break;
             }
         };
