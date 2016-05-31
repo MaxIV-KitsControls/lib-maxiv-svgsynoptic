@@ -192,7 +192,7 @@ class SynopticWidget(QtGui.QWidget):
         if names:
             for name in names:
                 self.js.evaluate("synoptic.select(%r, %r)" %
-                                 (str(kind), str(name)))
+                                 (str(kind), [str(name)]))
 
     def unselect_all(self):
         self.js.evaluate("synoptic.unselectAll();")
