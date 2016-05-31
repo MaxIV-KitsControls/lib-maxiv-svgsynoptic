@@ -100,10 +100,13 @@ class Registry(QtCore.QThread):
         self.unsubscribe_callback(old_attrs)
 
     def add_listener(self, model):
-        listener = self.listeners[model] = Attribute(model)
-        self.inverse_listeners[listener] = model
-        listener.addListener(self.handle_event)
-        return listener
+        try:
+            listener = self.listeners[model] = Attribute(model)
+            self.inverse_listeners[listener] = model
+            listener.addListener(self.handle_event)
+            return listener
+        except AttributeError:
+            print "Failed to subscribe to model %s!" % model
 
     def remove_listener(self, model):
         listener = self.listeners.pop(model)
