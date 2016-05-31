@@ -4,6 +4,7 @@ A Taurus based TANGO backend for the SVG synoptic.
 
 from inspect import isclass
 import json
+from weakref import WeakValueDictionary
 
 from PyQt4 import QtCore
 import PyTango
@@ -62,7 +63,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         super(TaurusSynopticWidget, self).__init__(parent=parent)
         Manager().setSerializationMode(TaurusSerializationMode.Concurrent)
         self.tooltip_trigger.connect(self._update_device_tooltip)
-        self._panels = {}
+        self._panels = WeakValueDictionary()
 
     def setModel(self, image, section=None):
         print "setModel", image
@@ -93,7 +94,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def run_plugin_command(self, plugin, cmd, args):
         try:
-            plugins = __import__("plugins.%s" % plugin, globals(), locals(), [cmd], -1)
+            plugins = __import__("plugins.%s" % plugin, globals(),
+                                 locals(), [cmd], -1)
         except ImportError as e:
             print "Could not initialize plugin '%s'!" % plugin
             print e
@@ -147,8 +149,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 self.js.evaluate("synoptic.setText('model', %r, '%s')" %
                                  (model, value))
             else:
-                text = evt_src.displayValue(value)
+                quality = evt_value.quality
+                if quality == PyTango.AttrQuality.ATTR_INVALID:
+                    text = "?"  # do something more sophisticated here
+                else:
+                    text = evt_src.displayValue(value)
                 unit = evt_src.getConfig().unit
+
                 if unit in (None, "No unit"):
                     unit = ""
                 self.js.evaluate("synoptic.setText('model', %r, '%s %s')" %
@@ -179,8 +186,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     def on_rightclick(self, kind, name):
         "The default behavior for right clicking a device is to open a panel."
         if kind == "model" and self.registry.device_validator.isValid(name):
-            if name in self._panels:
-                widget = self._panels[name]
+            if name.lower() in self._panels:
+                widget = self._panels[name.lower()]
                 if not widget.isVisible():
                     widget.show()
                 widget.activateWindow()
@@ -206,7 +213,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             widget.setWindowTitle(name)
             # monkey patch to cleanup on close...
             widget.closeEvent = lambda _: self._cleanup_panel(widget)
-            self._panels[str(widget.getModel())] = widget
+            # keep a reference to the widget
+            self._panels[name.lower()] = widget
             widget.show()
 
     def _cleanup_panel(self, w):
@@ -216,7 +224,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         if self.registry:
             with self.registry.lock:
                 print "cleaning up panel for", w.getModel(), "..."
-                self._panels.pop(str(w.getModel()), None)
+                # this should not be needed since it's a weakref...
+                self._panels.pop(str(w.getModel()).lower(), None)
                 w.setModel(None)
                 print "done!"
 
