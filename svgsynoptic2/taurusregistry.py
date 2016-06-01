@@ -57,7 +57,7 @@ class Registry(QtCore.QThread):
             elif self.device_validator.isValid(model):
                 attrs.add(model + "/State")
             else:
-                print "Invalid model %s; must be Tango device or attribute!" % model
+                print "Invalid Taurus model %s!" % model
         self._attributes = attrs
 
     def get_value(self, model):
