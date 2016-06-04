@@ -1,23 +1,23 @@
 svg .status-UNKNOWN {
     stroke: white;
-    fill: rgb(128,128,128);
+    fill: rgb(128,128,128) !important;
 }
 
 svg .state-INIT {
-    fill: rgb(204,204,122);
+    fill: rgb(204,204,122) !important;
 }
 
 svg .state-DISABLE {
-    fill: rgb(255,0,255);
+    fill: rgb(255,0,255) !important;
 }
 
 svg .state-STANDBY {
-    fill: rgb(255,255,0);
+    fill: rgb(255,255,0) !important;
 }
 
 svg .state-ON, svg .state-OPEN, svg .state-EXTRACT {
     stroke: #00000;
-    fill: #00FF00;
+    fill: #00FF00 !important;
 }
 
 svg .state-OFF, svg .state-CLOSE, svg .state-INSERT {
@@ -26,7 +26,7 @@ svg .state-OFF, svg .state-CLOSE, svg .state-INSERT {
 }
 
 svg .state-FAULT {
-    stroke: white !important;
+    stroke: white;
     fill: red !important;
 }
 
