@@ -2,10 +2,11 @@
 A Taurus based TANGO backend for the SVG synoptic.
 """
 
-from inspect import isclass
+from inspect import isclass, getfile
 import json
 from weakref import WeakValueDictionary
 
+import numpy as np
 from PyQt4 import QtCore
 import PyTango
 from synopticwidget import SynopticWidget
@@ -15,6 +16,7 @@ from taurus.core.taurusbasetypes import (AttrQuality, DataFormat,
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.panel import TaurusDevicePanel, TaurusWidget
 from taurus.qt.qtgui.application import TaurusApplication
+from taurus.core.tango.enums import DevState
 
 from taurusregistry import Registry
 
@@ -116,50 +118,88 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
                              (model, classes))
 
+    def filter_fragment(self, model, value):
+        # the "fragment" is an optional part at the end of an eval attribute,
+        # prefixed by a "#" and intended to make it possible to "filter" only
+        # part of a spectrum or image through "slicing". It is up to the
+        # client to do this, so we implement it here.
+        frag = self.registry.eval_validator.getNames(model, fragment=True)[3]
+        if frag:
+            indices = frag[1:-1]
+            try:
+                # this is the special case where the slice is just an index
+                # I'm not 100% that this should be allowed, but it's so useful!
+                index = int(indices)
+                return value[index]
+            except ValueError:
+                pass
+            try:
+                slice_ = [int(i) for i in indices.split(":")]
+                return value[slice(*slice_)]
+            except ValueError:
+                pass
+        return value
+
     def attribute_listener(self, model, evt_src, evt_type, evt_value):
         "Handle events"
+
         if evt_type == TaurusEventType.Error:
             return  # handle errors somehow
         if evt_type == TaurusEventType.Config:
             return  # need to do something here too
         value = evt_value.value
-        if evt_value.data_format == DataFormat._0D:
-            # we'll ignore spectrum/image attributes for now
-            if isinstance(value, PyTango._PyTango.DevState):
-                classes = STATE_CLASSES[value]
-                device, attr = model.rsplit("/", 1)
-                if attr.lower() == "state":
-                    # this is the normal "State" attribute of the
-                    # device. Let's set the color of device models
-                    # too, for convenience.
-                    self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
-                                     (device, classes))
-                    self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
-                                     (device, classes))
-                else:
-                    # Apparently it's an attribute of type DevState
-                    # but it is not the normal "State" attribute.
-                    self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
-                                     (model, classes))
-                self.js.evaluate("synoptic.setText('model', %r, '%s')" % (model, value))
-            elif isinstance(value, bool):
-                classes = {"boolean-true": value, "boolean-false": not value}
-                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
-                                 (model, json.dumps(classes)))
-                self.js.evaluate("synoptic.setText('model', %r, '%s')" %
-                                 (model, value))
-            else:
-                quality = evt_value.quality
-                if quality == PyTango.AttrQuality.ATTR_INVALID:
-                    text = "?"  # do something more sophisticated here
-                else:
-                    text = evt_src.displayValue(value)
-                unit = evt_src.getConfig().unit
 
-                if unit in (None, "No unit"):
-                    unit = ""
-                self.js.evaluate("synoptic.setText('model', %r, '%s %s')" %
-                                 (model, text, unit))
+        # check for the presence of a "fragment" ending (e.g. ...#[3])
+        if self.registry and self.registry.eval_validator.isValid(model):
+            value = self.filter_fragment(model, value)
+
+        # handle the value differently depending on what it is
+        # TODO: clean this up!
+        if isinstance(value, (DevState, PyTango.DevState)):
+            classes = STATE_CLASSES[value]
+            device, attr = model.rsplit("/", 1)
+            if attr.lower() == "state":
+                # this is the normal "State" attribute of the
+                # device. Let's set the color of device models
+                # too, for convenience.
+                print "Set state", device, value
+                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                                 (device, classes))
+                self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
+                                 (device, classes))
+            else:
+                # Apparently it's an attribute of type DevState
+                # but it is not the normal "State" attribute.
+                self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                                 (model, classes))
+            self.js.evaluate("synoptic.setText('model', %r, '%s')" % (model, value))
+        elif isinstance(value, (bool, np.bool_)):
+            classes = {"boolean-true": bool(value),
+                       "boolean-false": not value}
+            print "set bool", model, value
+            self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
+                             (model, json.dumps(classes)))
+            self.js.evaluate("synoptic.setText('model', %r, '%s')" %
+                             (model, value))
+        else:
+            # everything else needs to be displayed as text
+            quality = evt_value.quality
+            if quality == PyTango.AttrQuality.ATTR_INVALID:
+                text = "?"  # do something more sophisticated here
+            else:
+                try:
+                    text = evt_src.displayValue(value)
+                except AttributeError:
+                    text = str(value)
+            try:
+                unit = evt_src.getConfig().unit
+            except AttributeError:
+                unit = None
+
+            if unit in (None, "No unit"):
+                unit = ""
+            self.js.evaluate("synoptic.setText('model', %r, '%s %s')" %
+                             (model, text, unit))
 
     def on_click(self, kind, name):
         """The default behavior is to mark a clicked device and to zoom to a
