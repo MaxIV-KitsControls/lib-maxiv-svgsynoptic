@@ -4,7 +4,6 @@ A Taurus based TANGO backend for the SVG synoptic.
 
 from inspect import isclass, getfile
 import json
-from weakref import WeakValueDictionary
 
 import numpy as np
 from PyQt4 import QtCore
@@ -16,7 +15,11 @@ from taurus.core.taurusbasetypes import (AttrQuality, DataFormat,
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.panel import TaurusDevicePanel, TaurusWidget
 from taurus.qt.qtgui.application import TaurusApplication
-from taurus.core.tango.enums import DevState
+try:
+    from taurus.core.tango.enums import DevState
+except ImportError:
+    from PyTango import DevState
+
 
 from taurusregistry import Registry
 
@@ -65,10 +68,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         super(TaurusSynopticWidget, self).__init__(parent=parent)
         Manager().setSerializationMode(TaurusSerializationMode.Concurrent)
         self.tooltip_trigger.connect(self._update_device_tooltip)
-        self._panels = WeakValueDictionary()
+        self._panels = {}
 
     def setModel(self, image, section=None):
-        print "setModel", image
         self.set_url(image)
         self.registry = Registry(self.attribute_listener,
                                  self.unsubscribe_listener)
@@ -80,9 +82,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # self.tooltip_registry.start()
 
     def _hovered(self, sec, mods):
-        print "hovered", sec, type(mods)
         attr = self.registry.get_listener(str(mods))
-        print attr
 
     def getModel(self):
         return self._url
@@ -104,8 +104,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             return ""
         return getattr(plugins, cmd)(self, args)
 
-    def handle_subscriptions(self, models):
-        print "handle_subscriptions", models
+    def handle_subscriptions(self, models=[]):
         if self.registry:
             self.registry.subscribe(models)
 
@@ -151,18 +150,21 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
         # check for the presence of a "fragment" ending (e.g. ...#[3])
         if self.registry and self.registry.eval_validator.isValid(model):
-            value = self.filter_fragment(model, value)
+            try:
+                value = self.filter_fragment(model, value)
+            except Exception:
+                pass  # fragment is a taurus 4 feature
 
         # handle the value differently depending on what it is
         # TODO: clean this up!
-        if isinstance(value, (DevState, PyTango.DevState)):
+
+        if isinstance(value, (DevState, PyTango.DevState, PyTango._PyTango.DevState)):
             classes = STATE_CLASSES[value]
             device, attr = model.rsplit("/", 1)
             if attr.lower() == "state":
                 # this is the normal "State" attribute of the
                 # device. Let's set the color of device models
                 # too, for convenience.
-                print "Set state", device, value
                 self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
                                  (device, classes))
                 self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
@@ -176,7 +178,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         elif isinstance(value, (bool, np.bool_)):
             classes = {"boolean-true": bool(value),
                        "boolean-false": not value}
-            print "set bool", model, value
             self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
                              (model, json.dumps(classes)))
             self.js.evaluate("synoptic.setText('model', %r, '%s')" %
@@ -227,12 +228,15 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         "The default behavior for right clicking a device is to open a panel."
         if kind == "model" and self.registry.device_validator.isValid(name):
             if name.lower() in self._panels:
+
                 widget = self._panels[name.lower()]
+                print "Found existing panel for %s:" % name, widget
                 if not widget.isVisible():
                     widget.show()
                 widget.activateWindow()
                 widget.raise_()
                 return
+
 
             # check if we recognise the class of the device
             widget = self.get_device_panel(name)
@@ -242,7 +246,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 return
             if isclass(widget):
                 # assume it's a widget class
-                print widget
                 widget = widget()
                 try:
                     # try to set the model
@@ -264,7 +267,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         if self.registry:
             with self.registry.lock:
                 print "cleaning up panel for", w.getModel(), "..."
-                # this should not be needed since it's a weakref...
                 self._panels.pop(str(w.getModel()).lower(), None)
                 w.setModel(None)
                 print "done!"
