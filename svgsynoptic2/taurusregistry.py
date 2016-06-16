@@ -14,6 +14,7 @@ except ImportError:
         DeviceNameValidator as TangoDeviceNameValidator)
     from taurus.core.evaluation import EvaluationAttributeNameValidator
 import PyTango
+from PyTango.utils import CaselessDict, CaselessList
 
 from ttldict import TTLDict
 
@@ -32,13 +33,13 @@ class Registry(QtCore.QThread):
 
     def __init__(self, event_callback, unsubscribe_callback, period=0.5):
         QtCore.QThread.__init__(self)
-        self.listeners = PyTango.utils.CaselessDict()
+        self.listeners = CaselessDict()
         self.inverse_listeners = {}
         self.event_callback = event_callback
         self.unsubscribe_callback = unsubscribe_callback
         self.period = period
-        self._attributes = set()
-        self._config = {}
+        self._attributes = CaselessList()
+        self._config = CaselessDict()
         self._last_event = TTLDict(default_ttl=10)
         self.attribute_validator = TangoAttributeNameValidator()
         self.device_validator = TangoDeviceNameValidator()
@@ -54,20 +55,20 @@ class Registry(QtCore.QThread):
         while not self.stopped.is_set():
             sleep(self.period)
             if self._attributes:
-                attributes, self._attributes = self._attributes, set()
+                attributes, self._attributes = self._attributes, CaselessList()
                 with self.lock:
                     self._update(attributes)
 
     def subscribe(self, models=[]):
         """Set the currently subscribed list of models."""
-        attrs = set()
+        attrs = CaselessDict()
         for model in models:
             if self.device_validator.isValid(model):
                 # for convenience, we subscribe to State for any devices
-                attrs.add(model + "/State")
+                attrs[model + "/State"] = True
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
-                attrs.add(model)
+                attrs[model] = True
             else:
                 print "Invalid Taurus model %s!?" % model
         self._attributes = attrs
@@ -82,17 +83,17 @@ class Registry(QtCore.QThread):
 
     def handle_event(self, evt_src, *args):
         # lookup the model(s) for this listener and notify them
-        models = self.inverse_listeners.get(evt_src)
+        models = self.inverse_listeners.get(evt_src, [])
         for model in models:
             self.event_callback(model, evt_src, *args)
 
-    def _update(self, attributes=set()):
+    def _update(self, attributes=CaselessDict()):
 
         "Update the subscriptions; add new ones, remove old ones"
 
-        listeners = set(self.listeners.keys())
-        new_attrs = attributes - listeners
-        old_attrs = listeners - attributes
+        listeners = set(k.lower() for k in self.listeners.keys())
+        new_attrs = set(attributes) - set(listeners)
+        old_attrs = set(listeners) - set(attributes)
 
         for attr in old_attrs:
             if self._attributes:
@@ -120,9 +121,9 @@ class Registry(QtCore.QThread):
             # to the *same* listener (e.g. eval expressions), this must
             # be a one-to-many map.
             if listener in self.inverse_listeners:
-                self.inverse_listeners[listener].add(model)
+                self.inverse_listeners[listener][model] = True
             else:
-                self.inverse_listeners[listener] = set([model])
+                self.inverse_listeners[listener] = CaselessDict([(model, True)])
             listener.addListener(self.handle_event)
             return listener
         except AttributeError:
@@ -131,6 +132,7 @@ class Registry(QtCore.QThread):
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)
         models = self.inverse_listeners[listener]
+        print models, model
         models.pop(model)
         if not models:
             self.inverse_listeners.pop(listener)
