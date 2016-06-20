@@ -88,8 +88,8 @@ class SynopticWidget(QtGui.QWidget):
         self.clicked = self.js.leftclicked
         self.rightClicked = self.js.rightclicked
         self.hovered = self.js.hovered
-        self.clicked.connect(self.on_click)
-        self.rightClicked.connect(self.on_rightclick)
+        self.clicked.connect(self._on_click)
+        self.rightClicked.connect(self._on_rightclick)
         self.hovered.connect(self._on_hover)
 
         # Inject JSInterface into the JS global namespace as "Backend"
@@ -149,6 +149,11 @@ class SynopticWidget(QtGui.QWidget):
         # in the synoptic.
         pass
 
+    def _on_click(self, kind, name):
+        # this is a workaround for a strange behavior; under some circumstances
+        # we get QStrings here, and sometimes unicode. Investigate!
+        self.on_click(str(kind), str(name))
+
     def on_click(self, kind, name):
         """Default behavior on click. Override to change!"""
         if kind == "section":
@@ -156,12 +161,17 @@ class SynopticWidget(QtGui.QWidget):
         elif kind == "model":
             self.select(kind, [name])
 
+    def _on_rightclick(self, kind, name):
+        # see _on_click()
+        self.on_rightclick(str(kind), str(name))
+
     def on_rightclick(self, kind, name):
         "Placeholder; override me!"
         pass
 
     def _on_hover(self, section, models):
-        splitmodels = models.split("\n") if models else []
+        # we get a comma separated string of concatenated models here.
+        splitmodels = str(models).split("\n") if models else []
         self.on_hover(section, splitmodels)
 
     def on_hover(self, section, models):
