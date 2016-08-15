@@ -51,9 +51,13 @@ Synoptic = (function () {
             // of the model names, as there can be differences between what's
             // used in the database and in the SVG. So we must normalize to compare.
             return svg.selectAll("." + type)
-                .filter(function (d) {return (d[type] == name.toLowerCase()) ||
-                                      (d[type].map(function (n) {return n.toLowerCase()})
-                                       .indexOf(name.toLowerCase()) != -1);});
+                .filter(function (d) {
+                    // the value may be a string, or a list of strings.
+                    if (typeof d[type] == "string")
+                        return d[type].toLowerCase() == name.toLowerCase();
+                    var types = d[type].map(function (n) {return n.toLowerCase()});
+                    return types.indexOf(name.toLowerCase()) != -1;
+                });
         }
 
         /********** Input events **********/
