@@ -38,9 +38,9 @@ Synoptic = (function () {
             var tooltip = new Tooltip(container, view);
         }
 
-        if (window.Notes) {
-            var notes = new Notes(container, view, []);
-        }
+        // if (window.Notes) {
+        //     var notes = new Notes(container, view, []);
+        // }
         
         /********** Utils **********/
 
@@ -120,19 +120,22 @@ Synoptic = (function () {
 
         setupMouse();
 
+        // mark a model (could be several items) as "selected"
         function selectModel (model) {
-            var node = selectNodes("model", model).node(),
-                bbox = getBBox("model", model);
-            console.log("selectModel " + model + " " +
-                        bbox.x + " " + bbox.y + " " +
-                        bbox.width + " " + bbox.height)
-            d3.select(node.parentNode)
-                .insert("svg:ellipse", ":first-child")
-                .attr("cx", bbox.x + bbox.width/2)
-                .attr("cy", bbox.y + bbox.height/2)
-                .attr("rx", bbox.width)
-                .attr("ry", bbox.height)
-                .classed("selection", true);
+            selectNodes("model", model)
+                .each(function (d) {
+                    var bbox = d.bbox;
+                    console.log("selectModel " + model + " " +
+                                bbox.x + " " + bbox.y + " " +
+                                bbox.width + " " + bbox.height)
+                    d3.select(this.parentNode)
+                        .insert("svg:ellipse", ":first-child")
+                        .attr("cx", bbox.x + bbox.width/2)
+                        .attr("cy", bbox.y + bbox.height/2)
+                        .attr("rx", bbox.width)
+                        .attr("ry", bbox.height)
+                        .classed("selection", true);
+                })
         }
 
         /********** Tango events **********/
@@ -147,33 +150,47 @@ Synoptic = (function () {
         var _bboxes = {device: {}, attribute: {}, section: {}};
 
         // return whether a given element is currently in view
-        function isInView(bbox, vbox) {
+        function isInView(bboxes, vbox) {
             // console.log("isInView " + bbox + " " + vbox);
-            if (!bbox)
+            if (!bboxes)
                 return false;
-            var result = (bbox.x > vbox.x - bbox.width &&
-                          bbox.y > vbox.y - bbox.height &&
-                          bbox.x < vbox.x + vbox.width &&
-                          bbox.y < vbox.y + vbox.height);
-            return result;
+            return bboxes.some(function (bbox) {
+                return (bbox.x > vbox.x - bbox.width &&
+                        bbox.y > vbox.y - bbox.height &&
+                        bbox.x < vbox.x + vbox.width &&
+                        bbox.y < vbox.y + vbox.height);
+            });
         }
 
+        // calculate the "bounding box" (smallest encompassing rectangle) for
+        // all nodes with a given type and name. This is used for checking if
+        // the element is in view or not.
         function _getBBox (type, name) {
-            try {     
-                var node = selectNodes(type, name).node();
-                var bbox = util.transformedBoundingBox(node);
-                // var bbox = node.getBoundingClientRect();
-                return bbox;
+            try {
+                var bboxes = [];
+                selectNodes(type, name)
+                    .each(function (d) {
+                        var bbox;
+                        bbox = util.transformedBoundingBox(this);
+                        // we'll also store the bbox in the node's data for easy
+                        // access. 
+                        d.bbox = bbox;
+                        bboxes.push(bbox)
+                    })
+                return bboxes;
             } catch (e) {
-                console.log(type + " " + name + " " + e);
+                // console.log(type + " " + name + " " + e);
                 // This probably means that the element is not displayed.
-                // return {x: node.getAttribute("x"),
-                //         y: node.getAttribute("y"),
-                //         width: 0, height: 0};
+                return {x: node.getAttribute("x"),
+                        y: node.getAttribute("y"),
+                        width: 0, height: 0};
             }
         }
-        // this gets used a lot, so we memoize it
-        var getBBox = _.memoize(_getBBox, function (a, b) {return (a + ":" + b).toLowerCase();});
+        // getBBox() gets used a lot (and the bboxes should never change),
+        // so we memoize it
+        var getBBox = _.memoize(_getBBox, function (a, b) {
+            return (a + ":" + b).toLowerCase();
+        });
 
         // return a selection containing the devices in the currently
         // shown layers and zoom levels.
@@ -212,7 +229,6 @@ Synoptic = (function () {
             sel  // hide things that are out of view
                 .filter(function (d) {
                     var visible = isInView(getBBox("model", d.model[0]), vbox);
-                    // console.log("model " + d.model[0] + " " + visible);
                     return !visible
                 })
                 .classed("hidden", true)
@@ -306,13 +322,7 @@ Synoptic = (function () {
             svg.selectAll(".model").each(function (d) {models.append(d.model)});
             return models;
         }
-        
-        // // preheat the getBBox cache (may take a few seconds)
-        // svg.selectAll(".device, .attribute, .section")
-        //     .filter(function (d) {
-        //         if (d) getBBox(d.type, d.name);
-        //     })
-
+       
     }
 
     return Synoptic;
