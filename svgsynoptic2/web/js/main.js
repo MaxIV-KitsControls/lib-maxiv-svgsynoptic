@@ -5,22 +5,25 @@ window.addEventListener("load", function () {
     /* Note: "Backend" is our connection to the outside; it
        may be a Qt widget or an ajax bridge; from here it all
        works the same, the API should be identical. */
-    
+
     function main (container, svg, config) {
 
         // var container = document.getElementById("view");
         config = config || {};
-        
+
         console.log("config "  + JSON.stringify(config));
         synoptic = new Synoptic(container, svg, config);
 
         // Mouse interaction
         synoptic.addEventCallback(
             "click", function (data) {
+                console.log(data);
                 if (R.has("section", data))
                     Backend.left_click("section", data.section[0]);
                 if (R.has("model", data))
                     Backend.left_click("model", data.model[0]);
+                if (R.has("launch", data))
+                    Backend.left_click("launch", data.launch[0]);
             });
         synoptic.addEventCallback(
             "contextmenu", function (data) {
@@ -40,11 +43,11 @@ window.addEventListener("load", function () {
                     Backend.hover(section, models);
                 }
             });
-        
+
         // Event subscription updates
         synoptic.addEventCallback("subscribe", subscribe);
-        
-        Backend.setup(); 
+
+        Backend.setup();
 
     }
 
@@ -59,7 +62,7 @@ window.addEventListener("load", function () {
         newSubs.sort();
         newSubs = newSubs.join("\n");
         if (newSubs != oldSubs) {
-            Backend.subscribe(newSubs); 
+            Backend.subscribe(newSubs);
             oldSubs = newSubs;
         }
     }
@@ -77,7 +80,7 @@ window.addEventListener("load", function () {
 
             // Get information from the structure of the file
             activateSVG(svg);
-            
+
             main(element, svg, config);
         });
     }
@@ -94,7 +97,7 @@ window.addEventListener("load", function () {
         main(svg);
     }
     window.loadSVGString = loadString;
-    
+
     function sanitizeSVG (svg) {
 
         // Setup all the layers that should be user selectble
@@ -107,7 +110,7 @@ window.addEventListener("load", function () {
                 return d3.select(this).attr("inkscape:label");})  // ugh
             .attr("display", null)
             .style("display", null);
-        
+
         // Set which layers are selectable
         // TODO: find a better way to do this; it relies on inkscape
         // specific tags and hardcoding layer names is not nice either!
@@ -141,7 +144,7 @@ window.addEventListener("load", function () {
             });
 
 
-        
+
         // // Note: this should now be fixed... remove
         // if (svg.select("g").attr("transform")) {
         //     console.log("********************************************************")
@@ -179,7 +182,7 @@ window.addEventListener("load", function () {
         // definitions like e.g. "model=x/y/z". For those found we set
         // the class and data of the parent element accordingly.
         // This makes it convenient to use D3.js to iterate over things.
-        var pattern = /^(model|section|alarm)=(.*)/;
+        var pattern = /^(model|section|alarm|launch)=(.*)/;
         // TODO: Allow arbitary data on nodes? How could that be used?
 
         svg.selectAll("desc")
@@ -189,8 +192,9 @@ window.addEventListener("load", function () {
                 lines.forEach(function (line) {
                     var match = pattern.exec(line);
                     if (match) {
-                        var kind = match[1].trim(),  
+                        var kind = match[1].trim(),
                             name = match[2].trim();
+                        // console.log(kind + " " + name);
                         if (data[kind]) {
                             console.log(kind + " " + name)
                             data[kind].push(name);
@@ -219,7 +223,7 @@ window.addEventListener("load", function () {
     window.loadElement = function (svg) {
         synoptify(svg);
     }
-    
+
     // runSynoptic(draw(ring3));
 
 });
