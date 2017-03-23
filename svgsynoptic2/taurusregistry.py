@@ -3,6 +3,7 @@ from time import sleep
 
 from PyQt4 import QtCore
 from taurus import Attribute
+from taurus.core import TaurusException
 try:
     from taurus.core.tango.tangovalidator import (TangoAttributeNameValidator,
                                                   TangoDeviceNameValidator)
@@ -129,8 +130,8 @@ class Registry(QtCore.QThread):
                 self.inverse_listeners[listener] = CaselessDict([(model, True)])
             listener.addListener(self.handle_event)
             return listener
-        except AttributeError:
-            print "Failed to subscribe to model %s!" % model
+        except (TaurusException, AttributeError) as e:
+            print "Failed to subscribe to model %s! %s" % (model, e)
 
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)
