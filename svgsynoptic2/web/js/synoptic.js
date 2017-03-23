@@ -212,7 +212,8 @@ Synoptic = (function () {
         function selectShownThings() {
             return svg.selectAll(
                 "g.layer:not(.hidden) > .model, " +
-                "g.layer:not(.hidden) > g.zoom:not(.hidden) > .model"
+                "g.layer:not(.hidden) > g:not(.zoom) .model, " +
+                "g.layer:not(.hidden) > g.zoom:not(.hidden) .model"
             );
         }
 
@@ -232,7 +233,6 @@ Synoptic = (function () {
                         console.log("Error subscribing to", sel.data(), e);
                     }
                 });
-            subEvent = null;
         }
 
         // Find all devices that can be seen and activate them
