@@ -14,7 +14,10 @@ except ImportError:
         DeviceNameValidator as TangoDeviceNameValidator)
     from taurus.core.evaluation import EvaluationAttributeNameValidator
 import PyTango
-from PyTango.utils import CaselessDict, CaselessList
+from PyTango.utils import CaselessList
+# We can't use pytango's CaselessDict since it does not keep the original
+# case of the keys :(
+from caseless import CaselessDictionary as CaselessDict
 
 from ttldict import TTLDict
 
