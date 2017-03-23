@@ -15,7 +15,7 @@ except ImportError:
         DeviceNameValidator as TangoDeviceNameValidator)
     from taurus.core.evaluation import EvaluationAttributeNameValidator
 import PyTango
-from PyTango.utils import CaselessList
+
 # We can't use pytango's CaselessDict since it does not keep the original
 # case of the keys :(
 from caseless import CaselessDictionary as CaselessDict
@@ -42,7 +42,7 @@ class Registry(QtCore.QThread):
         self.event_callback = event_callback
         self.unsubscribe_callback = unsubscribe_callback
         self.period = period
-        self._attributes = CaselessList()
+        self._attributes = None
         self._config = CaselessDict()
         self._last_event = TTLDict(default_ttl=10)
         self.attribute_validator = TangoAttributeNameValidator()
@@ -58,8 +58,8 @@ class Registry(QtCore.QThread):
         # go quite frequently.
         while not self.stopped.is_set():
             sleep(self.period)
-            if self._attributes:
-                attributes, self._attributes = self._attributes, CaselessList()
+            if self._attributes is not None:
+                attributes, self._attributes = self._attributes, None
                 with self.lock:
                     self._update(attributes)
 
@@ -136,7 +136,6 @@ class Registry(QtCore.QThread):
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)
         models = self.inverse_listeners[listener]
-        print models, model
         models.pop(model)
         if not models:
             self.inverse_listeners.pop(listener)
