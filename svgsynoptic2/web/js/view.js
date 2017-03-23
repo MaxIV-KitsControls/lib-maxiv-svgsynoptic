@@ -1,15 +1,17 @@
-/*
-The View is an interactive container for an SVG document.  
-
-It can be configured to switch between detail levels in the document
-depending on the current zoom level.
-
-Also provides some convenience methods for quickly moving the
-virwpoint to a given item, etc.
-*/
-
 var View = (function () {
 
+    // calculate the largest scale at which the whole image fits in
+    // the window
+    function fitImageInWindow(windowWidth, windowHeight,
+                              imageWidth, imageHeight) {
+        var windowRatio = windowWidth / windowHeight,
+            imageRatio = imageWidth / imageHeight;
+        if (windowRatio < imageRatio) {
+            return windowWidth / imageWidth;                
+        }
+        return windowHeight / imageHeight;                        
+    }
+    
     function View (element, svg, config) {
 
         /* config.zoomSteps is a list of numbers. The first number
@@ -20,52 +22,41 @@ var View = (function () {
            points of zoomSteps also limits user zooming.  If the
            number of steps is smaller than the number of zoom levels
            in the SVG, those higher zoom levels will not be visible. */
+        
         config = config || {};
-        zoomSteps = config.zoomSteps || [1, 10, 100];
-        var maxZoom = zoomSteps.slice(-1)[0];
+        var zoomSteps = config.zoomSteps || [1, 10, 100],
+            maxZoom = zoomSteps.slice(-1)[0];
 
-        // assume everything is contained in one toplevel group
-        // TODO: is this really necessary?
         var svgMain = svg.select("g"),
-            changeCallbacks = [];
-
-        // Figure out the original size of the drawing.
-        // TODO: what's correct to use here? Looks like the
-        // width/height attrs of the SVG can be completely wrong in
-        // inkscape files at least. Is viewBox reliable?
-        var viewBox = svg.attr("viewBox");
-        if (viewBox) {
-            viewBox = viewBox.split(" ");
-            width = viewBox[2], height = viewBox[3];
-        } else {
-            var width = parseInt(svg.attr("width")),
-                height = parseInt(svg.attr("height"));
-        }
-        console.log("width " + width + ", height: " + height);
-
-        var originalTransform = d3.transform(svgMain.attr("transform"));
-        console.log("originalTransform: " + originalTransform)
+            zoomSel = svgMain.selectAll("g.zoom");
         
-        // svgMain.attr("transform", null);
+        // setup the mouse pan/zoom behavior
+        var zoom = d3.behavior.zoom().on("zoom", function() {
+            svgMain.attr("transform",
+                         "translate(" + d3.event.translate + ")" +
+                         " scale(" + d3.event.scale + ")");
+            oldScale = d3.event.scale;
+            oldTranslate = d3.event.translate;            
+            updateZoomLevel(d3.event.scale);
+            fireChangeCallbacks();
+        });
+        svg.call(zoom);
 
-        var elWidth, elHeight, scale0;
-        setSize();
-        
-        function _updateDetailLevel(scale) {
-            var relScale = scale / scale0, zoomLevel;
-
+        // update the zoom levels to that the one that corresponds to
+        // the current scale is visible
+        var updateZoomLevel = _.throttle(function (scale) {
+            var relativeScale = scale / minimumScale, zoomLevel;
             /* This is a primitive way to switch zoom level.
                Can't see a way to make this completely general
                so for now it must be configured manually. */
             for(var i = 0; i<zoomSteps.length; i++) {
                 var z = zoomSteps[i];
-                if (z >= relScale) {
+                if (z >= relativeScale) {
                     zoomLevel = i;
                     break;
                 }
                 zoomLevel = i;  // never go beyond the highest level
             }
-
             if (zoomLevel != oldZoomLevel) {
                 var levelClass = ".level" + zoomLevel;
                 // hide the old zoom level...
@@ -74,6 +65,7 @@ var View = (function () {
                     .transition().duration(400)
                     .attr("opacity", 0)
                     .each("end", function () {
+                        // ouch... there must be a better way to do this :)
                         if (d3.select(this).attr("opacity") === 0) {
                             d3.select(this)
                                 .classed("really-hidden", true);
@@ -85,222 +77,198 @@ var View = (function () {
                     .transition().duration(400)
                     .attr("opacity", 1);
                 oldZoomLevel = zoomLevel;
-            }
-        }
-
-        function zoomed() {
-            svgMain.attr("transform", "translate(" + d3.event.translate +
-                         ")scale(" + d3.event.scale + ")"
-                         + originalTransform.toString());
-            updateDetailLevel(d3.event.scale);
-            fireChangeCallbacks();
-        }
-
-        var zoomSel = svgMain.selectAll("g.zoom"), oldZoomLevel = -1,
-            updateDetailLevel = _.throttle(_updateDetailLevel, 100,
-                                           {leading: false});
-        
-        var zoom = d3.behavior.zoom()
-                //.inertia(true)   // maybe d3 v3.6?
-                .scaleExtent([scale0, scale0*maxZoom])
-                .on("zoom", zoomed);
-
-        svg.call(zoom);
-
-        element.appendChild(svg.node());
-
-        setZoom({x: 0, y: 0, width: width, height: height});
-        zoom.event(svg);
+            }            
+        }, 100, {leading: false});
 
         // define the area to be visible
         function setZoom(bbox) {
+            var elWidth = element.clientWidth,
+                elHeight = element.clientHeight;
             var scale = Math.min(elWidth / bbox.width, elHeight / bbox.height);
-            scale = Math.min(scale, scale0 * maxZoom);
+            scale = Math.min(scale, minimumScale * maxZoom);
             var translate = [elWidth / 2 - scale * (bbox.x + bbox.width / 2),
                              elHeight / 2 - scale * (bbox.y + bbox.height / 2)];
-            // testrect.attr(bbox);
             return zoom.scale(scale).translate(translate);
         }
 
-        // smoothly pan and zoom the view to a given bounding box
-        function moveToBBox(bbox, duration, padding) {
-            padding = padding || 0;
-            var maxDim = Math.max(bbox.width, bbox.height),
-                maxpadding = maxDim * padding,
-                padded = {x: bbox.x - maxpadding,
-                          y: bbox.y - maxpadding,
-                          width: bbox.width + maxpadding * 2,
-                          height: bbox.height + maxpadding * 2},
-                z = setZoom(padded);
-            if (duration) {
-                svg.transition()
-                    .duration(duration)
-                    .ease("linear")
-                    .call(z.event);
-            } else {
-                svg.call(z.event);
-            }
-        }
-        this.moveToBBox = moveToBBox;
-
-        // smoothly pan the view to center on a coordinate
-        function moveTo(coord, duration) {
-            var bbox = getViewBox();
-            var padded = {x: coord.x - bbox.width/2,
-                          y: coord.y - bbox.height/2,
-                          width: bbox.width,
-                          height: bbox.height},
-                z = setZoom(padded);
-            if (duration) {
-                svg.transition()
-                    .duration(duration)
-                    .ease("linear")
-                    .call(z.event);
-            } else {
-                svg.call(z.event);
-            }
-        }
-        this.moveTo = moveTo;
-
-        var vb = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-
-        // // A thing for debugging the view box
-        // vb.setAttribute("stroke", "yellow");
-        // vb.setAttribute("stroke-width", 10);
-        // vb.setAttribute("fill", "none");
-        // vb.setAttribute("width", 100)
-        // vb.setAttribute("height", 100)
-        // vb.setAttribute("x", 100)
-        // vb.setAttribute("y", 100)
-        // svgMain.node().appendChild(vb);
+        // add the SVG to the page
+        element.appendChild(svg.node());
         
+        // reset the SVG view related attributes
+        var bbox = svg.node().getBoundingClientRect(),
+            svgWidth = bbox.width, svgHeight = bbox.height;
+        svg.attr("viewBox", null)
+            .attr("width", "100%")
+            .attr("height", "100%");
+
+        var oldZoomLevel;
+        
+        // make sure the image fits within the initial size of the window
+        var minimumScale = fitImageInWindow(element.clientWidth,
+                                            element.clientHeight,
+                                            svgWidth, svgHeight);
+        zoom.scale(minimumScale)
+            .scaleExtent([minimumScale, minimumScale*maxZoom]);
+
+        // get the current view box
         var getViewBox = this.getViewBox = function () {
-
-            // Need to take the original transform of the main element
-            // into account. A bit fiddly, and may not be quite correct
-            // particularly regarding scale... keep an eye on this!
-            var origTranslate = originalTransform.translate,
-                origScale =  originalTransform.scale,     
-                translate = zoom.translate(), scale = zoom.scale(),
-                oTransX = origTranslate[0] * origScale[0] * scale,
-                oTransY = origTranslate[1] * origScale[1] * scale;
-
-            // vb.setAttribute("x", -(translate[0] + oTransX) / scale);
-            // vb.setAttribute("y", -(translate[1] + oTransY) / scale);
-            // vb.setAttribute("width", elWidth / scale);
-            // vb.setAttribute("height", elHeight / scale);
-            
+            var translate = zoom.translate(), scale = zoom.scale();
             return {
-                x: -(translate[0] + oTransX) / scale,
-                y: -(translate[1] + oTransY) / scale,
-                // x: -translate[0] / scale,
-                // y: -translate[1] / scale,                
-                width: elWidth / scale, height: elHeight / scale
+                width: element.clientWidth / scale,
+                height: element.clientHeight / scale,
+                x: -parseFloat(translate[0] / scale),
+                y: -parseFloat(translate[1] / scale)
             };
         };
+        
+        // update the view if the window size changes
+        var oldWidth = element.clientWidth,
+            oldScale = minimumScale,
+            oldTranslate = [0, 0];
+        window.addEventListener("resize", function () {
+            minimumScale = fitImageInWindow(element.clientWidth,
+                                            element.clientHeight,
+                                            svgWidth, svgHeight);
+            zoom.scaleExtent([minimumScale,
+                              minimumScale * maxZoom]);
+            // TODO: figure out a better way, right now we only take
+            // the window width into account when calculating the new
+            // scale.
+            var newScale = oldScale * element.clientWidth / oldWidth;
+            zoom.scale(newScale)
+                .translate([oldTranslate[0] * newScale / oldScale,
+                            oldTranslate[1] * newScale / oldScale])
+                .scaleExtent([minimumScale, maxZoom*minimumScale]);
+            zoom.event(svg);
+
+            oldWidth = element.clientWidth;
+            oldScale = zoom.scale();
+            oldTranslate = zoom.translate();   
+        });
+                
+        // handle user callbacks
+        var changeCallbacks = [];
+        function fireChangeCallbacks () {
+            changeCallbacks.forEach(function (cb) {cb(getViewBox());});
+        }
 
         window.addEventListener("keydown", function (ev) {
 
-            var bbox = getViewBox()
-            console.log("keyCode " + ev.keyCode);
-
+            var bbox;
+            
             switch(ev.keyCode) {
 
-            // case 32:  // space
-            //     moveToBBox(bbox)
-            //     break;                
+            case 32:  // space; reset the view
+                resetView();
+                break;                
 
             case 37:  // left arrow key
-                moveToBBox({
-                    x: bbox.x - bbox.width * .25, y: bbox.y,
-                    width: bbox.width, height: bbox.height
-                });
+                panViewBy(.25, 0);
                 break;
             case 39:  // right arrow key
-                moveToBBox({
-                    x: bbox.x + bbox.width * .25, y: bbox.y,
-                    width: bbox.width, height: bbox.height
-                });
+                panViewBy(-.25, 0);
                 break;
                 
             case 38:  // up arrow key
-                moveToBBox({
-                    x: bbox.x, y: bbox.y - bbox.height * .25,
-                    width: bbox.width, height: bbox.height
-                });
+                panViewBy(0, .25);
                 break;                
             case 40:  // down arrow key
-                moveToBBox({
-                    x: bbox.x, y: bbox.y + bbox.height * .25,
-                    width: bbox.width, height: bbox.height
-                });
+                panViewBy(0, -.25);
                 break;
 
             case 187:  // plus
+                bbox = getViewBox();                
                 moveToBBox({
                     x: bbox.x + bbox.width/6,
                     y: bbox.y + bbox.height/6,
                     width: bbox.width/1.5, height: bbox.height/1.5
-                })
+                });
                 break;
             case 189:  // minus
+                bbox = getViewBox();                
                 moveToBBox({
                     x: bbox.x - bbox.width/4,
                     y: bbox.y - bbox.height/4,
                     width: bbox.width * 1.5, height: bbox.height * 1.5
-                })
+                });
                 break;
             }
         });
         
+        // ----- external API methods -----
+
+        // add a callback function that will get run every time
+        // the view changes
         this.addCallback = function (cb) {
             changeCallbacks.push(cb);
             // send out a first event immediately
             setTimeout(function () {cb(getViewBox());});
         };
 
-        function fireChangeCallbacks () {
-            changeCallbacks.forEach(function (cb) {cb(getViewBox());});
-        }
-
-        function setSize() {
-            // set some basic variables
-            elWidth = element.offsetWidth;
-            elHeight = element.offsetHeight;
-            svg.attr("width", elWidth)
-                .attr("height", elHeight);
-            svg.attr("viewBox", "0 0 " +  elWidth + " " + elHeight);
-            scale0 = Math.min(elWidth / width, elHeight / height);
-        }
-
-        // return whether a given element is currently in view
+        // check if a given rectangle is within view
         this.isInView = function (bbox) {
-            var vbox = getViewBox();
-            var width = bbox.width || 0, height = bbox.height || 0;
-            var result = (bbox.x > vbox.x - width  &&
-                          bbox.y > vbox.y - height &&
-                          bbox.x < vbox.x + vbox.width &&
-                          bbox.y < vbox.y + vbox.height);
-            return result;
-        }
+            var vbox = getViewBox(),
+                width = bbox.width || 0, height = bbox.height || 0;
+            return (bbox.x > vbox.x - width  &&
+                    bbox.y > vbox.y - height &&
+                    bbox.x < vbox.x + vbox.width &&
+                    bbox.y < vbox.y + vbox.height);
+        };
 
-        function updateSize () {
-            // Update sizes and scales when the window changes size
-            var oldWidth = elWidth,
-                oldScale = zoom.scale(),
-                oldTrans = zoom.translate();
-            setSize();
-            var newScale = oldScale * elWidth / oldWidth;
-            zoom.scale(newScale)
-                .translate([oldTrans[0] * newScale / oldScale,
-                            oldTrans[1] * newScale / oldScale])
-                .scaleExtent([scale0, maxZoom*scale0]);
-            zoom.event(svg)
-        }
-        window.addEventListener("resize", updateSize);
+        // set the view to show a given viewbox
+        var moveToBBox = this.moveToBBox = function (bbox, duration, padding) {
+            padding = padding || 0;
+            var maxDim = Math.max(bbox.width, bbox.height),
+                maxpadding = maxDim * padding,
+                padded = {x: (bbox.x || 0) - maxpadding,
+                          y: (bbox.y || 0) - maxpadding,
+                          width: bbox.width + maxpadding * 2,
+                          height: bbox.height + maxpadding * 2};
+            setZoom(padded);
+            if (duration) {
+                svg.transition()
+                    .duration(duration)
+                    .ease("linear")
+                    .call(zoom.event);
+            } else {
+                svg.call(zoom.event);
+            }            
+        };
 
+        // smoothly pan the view to center on a coordinate
+        this.moveTo = function moveTo(coord, duration) {
+            var bbox = getViewBox(),
+                padded = {x: coord.x - bbox.width/2,
+                          y: coord.y - bbox.height/2,
+                          width: bbox.width,
+                          height: bbox.height};
+            setZoom(padded);
+            if (duration) {
+                svg.transition()
+                    .duration(duration)
+                    .ease("linear")
+                    .call(zoom.event);
+            } else {
+                svg.call(zoom.event);
+            }
+        };
+
+        // pan the view by an amount relative to the size of the screen
+        var panViewBy = this.panBy = function (dx, dy) {
+            var bbox = getViewBox();
+            moveToBBox({
+                x: bbox.x - bbox.width * dx, y: bbox.y - bbox.height * dy,
+                width: bbox.width, height: bbox.height
+            });            
+        };
+
+        // reset the view to show the whole picture
+        var resetView = this.reset = function () {
+            moveToBBox({x: 0, y: 0, width: svgWidth, height: svgHeight});
+        };
+        
     }
-
+    
     return View;
-
+        
 })();
