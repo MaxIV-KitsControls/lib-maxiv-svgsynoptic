@@ -19,6 +19,25 @@ Synoptic = (function () {
         // around for a bit.
         view.addCallback(_.debounce(updateVisibility, 500, {leading: false}));
 
+        // // this is a debugging tool; uncomment it to be able to see the
+        // // current part of the image that the synoptic considers as "visible"
+        // var viewRect = svg.select("svg > g")
+        //     .append("rect")
+        //     .style("fill", "yellow")
+        //     .style("stroke-width", "5%")
+        //     .style("stroke", "red")
+        //     .style("opacity", 0.3);
+        // var viewRectText = svg.select("svg > g").append("text")
+        //     .text("test")
+        //     .style("font-size", "100")
+        //     .attr("dy", 100);
+        // view.addCallback(_.debounce(function (bbox) {
+        //     viewRect.attr(bbox);
+        //     viewRectText
+        //         .attr("x", bbox.x)
+        //         .attr("y", bbox.y)
+        //         .text(Math.round(bbox.width) + ", " + Math.round(bbox.height))
+        // }, 500));
         
         /********** optional plugins **********/
         // The plugins are only added if they are loaded from the HTML file.
