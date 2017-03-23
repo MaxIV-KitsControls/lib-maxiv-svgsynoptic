@@ -72,14 +72,3 @@ class JSInterface(QtCore.QObject):
         # want that anyway since it might block..?
         self.plugin_command.emit(plugin, cmd, args)
 
-    @QtCore.pyqtSlot(str)
-    def load_svg(self, svg_file):
-        "Load an SVG file into the synoptic"
-        # Note: ideally the webview would be able to load the SVG
-        # directly, but due to the fact that we want to be able to
-        # load js and css assets from the svgsynoptic library path,
-        # the basepath is set to there. That means that things in our
-        # own directory aren't accessible :(
-        with open(svg_file) as f:
-            data = f.read()
-            self.evaljs.emit(r"loadSVGString(%r);" % data)
