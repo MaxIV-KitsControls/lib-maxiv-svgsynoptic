@@ -27,7 +27,7 @@ var View = (function () {
         var zoomSteps = config.zoomSteps || [1, 10, 100],
             maxZoom = zoomSteps.slice(-1)[0];
 
-        var svgMain = svg.select("g"),
+        var svgMain = svg.select("svg > g"),
             zoomSel = svgMain.selectAll("g.zoom");
         
         // setup the mouse pan/zoom behavior
