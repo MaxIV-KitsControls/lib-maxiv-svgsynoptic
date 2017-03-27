@@ -1,49 +1,96 @@
-svg .status-UNKNOWN {
+svg .model.state[data-value="UNKNOWN"] {
     stroke: white;
     fill: rgb(128,128,128) !important;
 }
 
-svg .state-INIT {
+svg .model.state[data-value="INIT"] {
     fill: rgb(204,204,122) !important;
 }
 
-svg .state-DISABLE {
+svg .model.state[data-value="DISABLE"] {
     fill: rgb(255,0,255) !important;
 }
 
-svg .state-STANDBY {
+svg .model.state[data-value="STANDBY"] {
     fill: rgb(255,255,0) !important;
 }
 
-svg .state-ON, svg .state-OPEN, svg .state-EXTRACT {
+svg .model.state[data-value="ON"],
+svg .model.state[data-value="OPEN"],
+svg .model.state[data-value="EXTRACT"] {
     stroke: #00000;
     fill: #00FF00 !important;
 }
 
-svg .state-OFF, svg .state-CLOSE, svg .state-INSERT {
+svg .model.state[data-value="OFF"],
+svg .model.state[data-value="CLOSE"],
+svg .model.state[data-value="INSERT"] {
     stroke: grey;
     fill: white;
 }
 
-svg .state-FAULT {
+svg .model.state[data-value="FAULT"] {
     stroke: white;
     fill: red !important;
 }
 
-svg .state-RUNNING, svg .state-MOVING {
+svg .model.state[data-value="RUNNING"],
+svg .model.state[data-value="MOVING"] {
     fill: rgb(128,160,255) !important;
 }
 
-svg .state-ALARM {
+svg .model.state[data-value="ALARM"] {
     stroke: white;
     fill: rgb(255,140,0) !important;
 }
 
-svg .boolean-true {
-    fill: green !important;
+svg .model.boolean[data-value="true"]:not(text) {
+    fill: #0F0 !important;
 }
 
-svg .boolean-false {
+svg .model.boolean[data-value="false"]:not(text) {
     fill: red !important;
 }
 
+svg text.model[data-quality='ATTR_INVALID'] {
+    text-decoration: line-through !important;
+}
+
+svg .model[data-quality='ATTR_INVALID']:not(text) {
+    fill: grey !important;
+}
+
+svg text.model[data-quality='ATTR_MOVING'] {
+    text-decoration: overline !important;
+}
+
+
+@keyframes alarmBlink {
+    0% {
+        fill: red:
+    }
+    
+    100% {
+        fill: black;
+    }
+}
+
+svg text.model[data-quality='ATTR_ALARM'] {
+    animation-duration: 1s;
+    animation-name: alarmBlink;
+    animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes warningBlink {
+    0% {
+        fill: yellow  !important:
+    }
+    100% {
+        fill: black  !important;
+    }
+}
+
+svg text.model[data-quality='ATTR_WARNING'] {
+    /* fill: red !important; */
+    -webkit-animation: warningBlink 3s infinite !important;    
+}

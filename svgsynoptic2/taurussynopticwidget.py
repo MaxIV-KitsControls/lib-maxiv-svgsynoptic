@@ -18,7 +18,7 @@ from taurus.qt.qtgui.application import TaurusApplication
 try:
     from taurus.core.tango.enums import DevState
 except ImportError:
-    from PyTango import DevState
+    from PyTango import DevState, AttrQuality
 
 
 from taurusregistry import Registry
@@ -48,8 +48,11 @@ class TooltipUpdater(QtCore.QThread):
 
 def getStateClasses(state=None):
     "Return a state CSS class configuration"
-    return dict((("state-%s" % name), s == state)
-                for name, s in PyTango.DevState.names.items())
+    states = dict((("state-%s" % name), s == state)
+                  for name, s in PyTango.DevState.names.items())
+    states["state"] = True
+    return states
+
 
 # precalculate since this is done quite a lot
 STATE_CLASSES = dict((state, json.dumps(getStateClasses(state)))
@@ -141,13 +144,11 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def attribute_listener(self, model, evt_src, evt_type, evt_value):
         "Handle events"
-
         if evt_type == TaurusEventType.Error:
             return  # handle errors somehow
         if evt_type == TaurusEventType.Config:
             return  # need to do something here too
         value = evt_value.value
-
         # check for the presence of a "fragment" ending (e.g. ...#[3])
         if self.registry and self.registry.eval_validator.isValid(model):
             try:
@@ -158,9 +159,15 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # handle the value differently depending on what it is
         # TODO: clean this up!
 
-        if isinstance(value, (DevState, PyTango.DevState, PyTango._PyTango.DevState)):
+        quality = evt_value.quality
+        quality_string = str(AttrQuality.values[quality])
+
+        if isinstance(value, (DevState, PyTango.DevState,
+                              PyTango._PyTango.DevState)):
             classes = STATE_CLASSES[value]
             device, attr = model.rsplit("/", 1)
+            data = {"value": str(value), "quality": quality_string}
+
             if attr.lower() == "state":
                 # this is the normal "State" attribute of the
                 # device. Let's set the color of device models
@@ -169,22 +176,35 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                  (device, classes))
                 self.js.evaluate("synoptic.setClasses('model', '%s/State', %s)" %
                                  (device, classes))
+                self.js.evaluate("synoptic.setData('model', %r, %r)" %
+                                 (device, data))
+                self.js.evaluate("synoptic.setData('model', '%s/State', %r)" %
+                                 (device, data))
             else:
                 # Apparently it's an attribute of type DevState
                 # but it is not the normal "State" attribute.
                 self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
                                  (model, classes))
-            self.js.evaluate("synoptic.setText('model', %r, '%s')" % (model, value))
+                self.js.evaluate("synoptic.setData('model', %r, %s)" %
+                                 (model, data))
+
+            self.js.evaluate("synoptic.setText('model', %r, '%s')" %
+                             (model, value))
+
         elif isinstance(value, (bool, np.bool_)):
-            classes = {"boolean-true": bool(value),
+            classes = {"boolean": True,
+                       "boolean-true": bool(value),
                        "boolean-false": not value}
             self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
                              (model, json.dumps(classes)))
             self.js.evaluate("synoptic.setText('model', %r, '%s')" %
                              (model, value))
+            self.js.evaluate("synoptic.setData('model', %r, %s)" %
+                             (model,
+                              json.dumps({"value": str(value).lower(),
+                                          "quality": quality_string})))
         else:
             # everything else needs to be displayed as text
-            quality = evt_value.quality
             if quality == PyTango.AttrQuality.ATTR_INVALID:
                 text = "?"  # do something more sophisticated here
             else:
@@ -201,6 +221,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 unit = ""
             self.js.evaluate("synoptic.setText('model', %r, '%s %s')" %
                              (model, text, unit))
+            self.js.evaluate("synoptic.setData('model', %r, %s)" %
+                             (model, json.dumps({"value": text,
+                                                 "quality": quality_string})))
 
     def on_click(self, kind, name):
         """The default behavior is to mark a clicked device and to zoom to a

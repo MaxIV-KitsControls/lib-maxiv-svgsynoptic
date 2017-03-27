@@ -70,10 +70,12 @@ Synoptic = (function () {
             // of the model names, as there can be differences between what's
             // used in the database and in the SVG. So we must normalize to compare.
             return svg.selectAll("." + type)
-                .filter(function (d) {return (d[type] == name.toLowerCase()) ||
-                                      (d[type].map(function (n) {return n.toLowerCase()})
-                                       .indexOf(name.toLowerCase()) != -1);});
-        }
+                .filter(function (d) {
+                    return (d[type] == name.toLowerCase()) ||
+                        ((d[type] || []).map(function (n) {
+                            return n.toLowerCase();
+                        }).indexOf(name.toLowerCase()) != -1);});
+        };
 
         /********** Input events **********/
         // this is where we keep all registered callbacks for things
@@ -155,11 +157,18 @@ Synoptic = (function () {
 
         /********** Tango events **********/
 
+        // update CSS classes on selected nodes
         function setClasses(type, name, classes) {
             selectNodes(type, name)
-                .classed(classes)
+                .classed(classes);
         }        
 
+        // update the dataset attribute on selected nodes
+        function setData(type, name, data) {
+            selectNodes(type, name)
+                .each(function () {_.extend(this.dataset, data);});
+        }
+        
         /********** Visibility **********/
 
         var _bboxes = {device: {}, attribute: {}, section: {}};
@@ -298,6 +307,10 @@ Synoptic = (function () {
             setClasses(type, name, classes);
         };
 
+        this.setData = function (type, name, data) {
+            setData(type, name, data);
+        };
+        
         this.setText = function (type, name, html) {
             selectNodes(type, name).text(html);
         }
