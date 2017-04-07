@@ -112,7 +112,7 @@ class Registry(QtCore.QThread):
                 return
             try:
                 self._add_listener(attr)
-            except PyTango.DevFailed as e:
+            except (TypeError, PyTango.DevFailed) as e:
                 print "Failed to setup listener for", attr, e
 
         self.unsubscribe_callback(old_attrs)
