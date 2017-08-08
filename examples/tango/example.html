@@ -26,11 +26,11 @@
   
   <div id="view">                            
     <!-- this is where our synoptic will go -->
-    <div class="logo">Simple Example</div>
+      <!-- <div class="logo">Simple Example</div> -->
   </div>
 
   <!-- load some JavaScript libraries we use -->
-  <script src="js/libs/d3.js" charset="utf-8"></script>
+  <script src="js/libs/d3.v3.js" charset="utf-8"></script>
   <script src="js/libs/ramda.min.js"></script>
   <script src="js/libs/lodash.min.js"></script>
 
@@ -50,7 +50,10 @@
         var container = document.getElementById("view");
 
         // disabling zoom by only allowing one step
-        var config = {view: {zoomSteps: [1]}};
+        var config = {
+            windowSize: {width: 400, height: 600},
+            view: {zoomSteps: [1]}
+        };
         
         // loadSVG is a convenience method for loading a file.  Note
         // that we need to give the absolute path to the file. ${path}

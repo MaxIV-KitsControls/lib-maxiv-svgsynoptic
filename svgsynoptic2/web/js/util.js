@@ -100,4 +100,25 @@ var util = {};
         } else return null;
     };
 
+    // set/unset a given class on an SVG element 
+    util.setClass = function (node, className, on) {
+        var classes = node.getAttribute("class");
+        var classList = (classes || "").split(" ");
+        var index = classList.indexOf(className);
+        if (on && index === -1) {
+            node.setAttribute("class", classes + " " + className);
+        } else if (!on && index !== -1) {
+            classList.splice(index, 1);
+            node.setAttribute("class", classList.join(" "));
+        }
+    };
+
+    // Run a function on each element in an array-like (e.g. a NodeList)
+    // Useful for things that don't have the usual array "forEach" method.
+    util.forEach = function (someList, fun) {
+        for(var i=0; i<someList.length; i++) {
+            fun(someList[i]);
+        }
+    };
+ 
 })();

@@ -28,7 +28,7 @@ def main():
     path = os.path.dirname(__file__)
     widget = ExampleSynopticWidget()
     widget.setModel(os.path.join(path, "example.html"))
-
+    widget.resize(1000, 700)
     widget.show()
     qapp.exec_()
 
