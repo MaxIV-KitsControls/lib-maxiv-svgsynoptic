@@ -82,12 +82,16 @@ var View = (function () {
 
         // define the area to be visible
         function setZoom(bbox) {
+            console.log("setxoom", bbox);
             var elWidth = element.clientWidth,
                 elHeight = element.clientHeight;
             var scale = Math.min(elWidth / bbox.width, elHeight / bbox.height);
             scale = Math.min(scale, minimumScale * maxZoom);
-            var translate = [elWidth / 2 - scale * (bbox.x + bbox.width / 2),
-                             elHeight / 2 - scale * (bbox.y + bbox.height / 2)];
+            var translate = [
+                ((bbox.left + bbox.width / 2)),
+                ((bbox.top + bbox.height / 2))
+            ];
+            console.log("translate", translate);
             return zoom.scale(scale).translate(translate);
         }
 
@@ -116,8 +120,8 @@ var View = (function () {
             return {
                 width: element.clientWidth / scale,
                 height: element.clientHeight / scale,
-                x: -parseFloat(translate[0] / scale),
-                y: -parseFloat(translate[1] / scale)
+                left: -parseFloat(translate[0] / scale),
+                top: -parseFloat(translate[1] / scale)
             };
         };
         
@@ -179,16 +183,16 @@ var View = (function () {
             case 187:  // plus
                 bbox = getViewBox();                
                 moveToBBox({
-                    x: bbox.x + bbox.width/6,
-                    y: bbox.y + bbox.height/6,
+                    left: bbox.left + bbox.width/6,
+                    top: bbox.top + bbox.height/6,
                     width: bbox.width/1.5, height: bbox.height/1.5
                 });
                 break;
             case 189:  // minus
                 bbox = getViewBox();                
                 moveToBBox({
-                    x: bbox.x - bbox.width/4,
-                    y: bbox.y - bbox.height/4,
+                    left: bbox.left - bbox.width/4,
+                    top: bbox.top - bbox.height/4,
                     width: bbox.width * 1.5, height: bbox.height * 1.5
                 });
                 break;
@@ -209,10 +213,10 @@ var View = (function () {
         this.isInView = function (bbox) {
             var vbox = getViewBox(),
                 width = bbox.width || 0, height = bbox.height || 0;
-            return (bbox.x > vbox.x - width  &&
-                    bbox.y > vbox.y - height &&
-                    bbox.x < vbox.x + vbox.width &&
-                    bbox.y < vbox.y + vbox.height);
+            return (bbox.left > vbox.left - width  &&
+                    bbox.left > vbox.top - height &&
+                    bbox.left < vbox.left + vbox.width &&
+                    bbox.left < vbox.top + vbox.height);
         };
 
         // set the view to show a given viewbox
@@ -220,8 +224,8 @@ var View = (function () {
             padding = padding || 0;
             var maxDim = Math.max(bbox.width, bbox.height),
                 maxpadding = maxDim * padding,
-                padded = {x: (bbox.x || 0) - maxpadding,
-                          y: (bbox.y || 0) - maxpadding,
+                padded = {left: (bbox.left || 0) - maxpadding,
+                          top: (bbox.top || 0) - maxpadding,
                           width: bbox.width + maxpadding * 2,
                           height: bbox.height + maxpadding * 2};
             setZoom(padded);
@@ -238,8 +242,8 @@ var View = (function () {
         // smoothly pan the view to center on a coordinate
         this.moveTo = function moveTo(coord, duration) {
             var bbox = getViewBox(),
-                padded = {x: coord.x - bbox.width/2,
-                          y: coord.y - bbox.height/2,
+                padded = {left: coord.left - bbox.width/2,
+                          top: coord.top - bbox.height/2,
                           width: bbox.width,
                           height: bbox.height};
             setZoom(padded);
@@ -257,14 +261,14 @@ var View = (function () {
         var panViewBy = this.panBy = function (dx, dy) {
             var bbox = getViewBox();
             moveToBBox({
-                x: bbox.x - bbox.width * dx, y: bbox.y - bbox.height * dy,
+                left: bbox.left - bbox.width * dx, top: bbox.top - bbox.height * dy,
                 width: bbox.width, height: bbox.height
             });            
         };
 
         // reset the view to show the whole picture
         var resetView = this.reset = function () {
-            moveToBBox({x: 0, y: 0, width: svgWidth, height: svgHeight});
+            moveToBBox({left: 0, top: 0, width: svgWidth, height: svgHeight});
         };
         
     }

@@ -1,96 +1,115 @@
-svg .model.state[data-value="UNKNOWN"] {
+.state[data-value="UNKNOWN"] {
     stroke: white;
     fill: rgb(128,128,128) !important;
+    color: white;
+    background: rgb(128,128,128);
 }
 
-svg .model.state[data-value="INIT"] {
+.state[data-value="INIT"] {
     fill: rgb(204,204,122) !important;
+    background: rgb(204,204,122);
 }
 
-svg .model.state[data-value="DISABLE"] {
+.state[data-value="DISABLE"] {
     fill: rgb(255,0,255) !important;
+    background: rgb(255,0,255);
 }
 
-svg .model.state[data-value="STANDBY"] {
+.state[data-value="STANDBY"] {
     fill: rgb(255,255,0) !important;
+    background: rgb(255,255,0);
 }
 
-svg .model.state[data-value="ON"],
-svg .model.state[data-value="OPEN"],
-svg .model.state[data-value="EXTRACT"] {
+.state[data-value="ON"],
+.state[data-value="OPEN"],
+.state[data-value="EXTRACT"] {
     stroke: #00000;
     fill: #00FF00 !important;
-}
+    color: #00000;
+    background: #00FF00;
+} 
 
-svg .model.state[data-value="OFF"],
-svg .model.state[data-value="CLOSE"],
-svg .model.state[data-value="INSERT"] {
+.state[data-value="OFF"],
+.state[data-value="CLOSE"],
+.state[data-value="INSERT"] {
     stroke: grey;
     fill: white;
+    color: grey;
+    background: white;
 }
 
-svg .model.state[data-value="FAULT"] {
+.state[data-value="FAULT"] {
     stroke: white;
     fill: red !important;
+    color: white;
+    background: red;
 }
 
-svg .model.state[data-value="RUNNING"],
-svg .model.state[data-value="MOVING"] {
+.state[data-value="RUNNING"],
+.state[data-value="MOVING"] {
     fill: rgb(128,160,255) !important;
+    background: rgb(128,160,255);
 }
 
-svg .model.state[data-value="ALARM"] {
+.state[data-value="ALARM"] {
     stroke: white;
     fill: rgb(255,140,0) !important;
+    color: white;
+    background: rgb(255,140,0);
 }
 
-svg .model.boolean[data-value="true"]:not(text) {
+.boolean[data-value="true"]:not(text) {
     fill: #0F0 !important;
+    background: #0f0;
 }
 
-svg .model.boolean[data-value="false"]:not(text) {
+.boolean[data-value="false"]:not(text) {
     fill: red !important;
+    background: red;
 }
 
-svg text.model[data-quality='ATTR_INVALID'] {
+[data-quality='ATTR_INVALID'] {
     text-decoration: line-through !important;
 }
 
-svg .model[data-quality='ATTR_INVALID']:not(text) {
+[data-quality='ATTR_INVALID']:not(text) {
     fill: grey !important;
 }
 
-svg text.model[data-quality='ATTR_MOVING'] {
+[data-quality='ATTR_MOVING'] {
     text-decoration: overline !important;
 }
 
 
-@keyframes alarmBlink {
-    0% {
-        fill: red:
+@-webkit-keyframes alarmBlink {
+    from {
+        fill: red !important;
     }
     
-    100% {
-        fill: black;
+    to {
+        fill: black !important;
     }
 }
 
-svg text.model[data-quality='ATTR_ALARM'] {
-    animation-duration: 1s;
-    animation-name: alarmBlink;
-    animation-iteration-count: infinite;
+[data-quality='ATTR_ALARM'] {
+    text-decoration: blink overline;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-name: alarmBlink;
+    -webkit-animation-iteration-count: infinite;
 }
 
 @-webkit-keyframes warningBlink {
-    0% {
-        fill: yellow  !important:
+    from {
+        fill: yellow  !important;
     }
-    100% {
-        fill: black  !important;
+    to {
+        fill: inherit  !important;
     }
 }
 
-svg text.model[data-quality='ATTR_WARNING'] {
-    /* fill: red !important; */
-    -webkit-animation: warningBlink 3s infinite !important;    
+[data-quality='ATTR_WARNING'] {
+    text-decoration: underline;
+    -webkit-animation-duration: 3s;
+    -webkit-animation-name: warningBlink;
+    -webkit-animation-iteration-count: infinite;
 }

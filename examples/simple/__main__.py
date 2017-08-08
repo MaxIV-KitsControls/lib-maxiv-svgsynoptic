@@ -5,7 +5,9 @@ in a stand alone application.
 
 import os
 
-from taurus.external.qt import Qt
+#from taurus.external.qt import Qt
+from taurus.qt.qtgui.application import TaurusApplication
+
 
 from svgsynoptic2.synopticwidget import SynopticWidget
 
@@ -20,7 +22,7 @@ class ExampleSynopticWidget(SynopticWidget):
 
 
 def main():
-    qapp = Qt.QApplication([])
+    qapp = TaurusApplication()
 
     # We need to give the absolute path to the HTML file
     # because our webview is setup to load assets from the

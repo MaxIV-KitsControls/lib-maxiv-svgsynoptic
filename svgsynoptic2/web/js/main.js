@@ -14,37 +14,39 @@ window.addEventListener("load", function () {
         console.log("config "  + JSON.stringify(config));
         synoptic = new Synoptic(container, svg, config);
 
+        console.log("synoptic " + synoptic)
+        
         // Mouse interaction
         synoptic.addEventCallback(
             "click", function (data) {
                 if (R.has("section", data))
-                    Backend.left_click("section", data.section[0]);
+                    Backend.left_click("section", data.section);
                 if (R.has("model", data))
-                    Backend.left_click("model", data.model[0]);
+                    Backend.left_click("model", data.model);
             });
         synoptic.addEventCallback(
             "contextmenu", function (data) {
                 if (R.has("model", data))
-                    Backend.right_click("model", data.model[0]);
+                    Backend.right_click("model", data.model);
             });
 
-        synoptic.addEventCallback(
-            "hover", function (data) {
-                if (!data) {
-                    // mouse has left something
-                    Backend.hover("", "");
-                } else {
-                    // mouse has entered something
-                    var models = data.model && data.model.join("\n") || "",
-                        section = data.section || "";
-                    Backend.hover(section, models);
-                }
-            });
+        // synoptic.addEventCallback(
+        //     "hover", function (data) {
+        //         if (!data) {
+        //             // mouse has left something
+        //             Backend.hover("", "");
+        //         } else {
+        //             // mouse has entered something
+        //             var models = data.model, //&& data.model.join("\n") || "",
+        //                 section = data.section || "";
+        //             Backend.hover(section, models);
+        //         }
+        //     });
         
         // Event subscription updates
         synoptic.addEventCallback("subscribe", subscribe);
-        
-        Backend.setup(); 
+
+        // Backend.setup(); 
 
     }
 
@@ -53,11 +55,12 @@ window.addEventListener("load", function () {
     // send the list of visible things to the backend whenever
     // it changes.
     var oldSubs = "";
-    function subscribe(subs) {
-        var newSubs = R.pluck("model", subs);
-        console.log("subscribe " + newSubs);
+    function subscribe(newSubs) {
+        //var newSubs = R.pluck("model", subs);
+
         newSubs.sort();
         newSubs = newSubs.join("\n");
+        console.log("subscribe " + newSubs);        
         if (newSubs != oldSubs) {
             Backend.subscribe(newSubs); 
             oldSubs = newSubs;
@@ -71,7 +74,6 @@ window.addEventListener("load", function () {
         d3.xml(svg, "image/svg+xml", function(xml) {
             var svg = d3.select(document.importNode(xml.documentElement, true));
             d3.ns.prefix.inkscape = "http://www.inkscape.org/namespaces/inkscape";
-
             // Some preprocessing of the SVG may be needed
             sanitizeSVG(svg);
 
@@ -189,22 +191,24 @@ window.addEventListener("load", function () {
                 lines.forEach(function (line) {
                     var match = pattern.exec(line);
                     if (match) {
-                        var kind = match[1].trim(),  
+                        var kind = match[1].trim().toLowerCase(),  
                             name = match[2].trim();
-                        if (data[kind]) {
-                            console.log(kind + " " + name)
-                            data[kind].push(name);
-                        } else {
-                            // console.log("found " + kind + " " + name)
-                            data[kind] = [name];
-                        }
-                        classes[kind] = true;
+                        data[kind] = name;
                     }
                 }, this);
 
-                d3.select(this.parentNode)
-                    .classed(classes)
-                    .datum(data);
+                // Now store the data as "data" attributes on the node.
+                // This way javascript and CSS can access it easily.
+                var parent = this.parentNode;
+                d3.select(parent).classed(data);
+                Object.keys(data).forEach(function (kind) {
+                    parent.setAttribute("data-" + kind, data[kind]);
+                    // we'll also add a "normalized" version of the
+                    // attribute, to use for CSS matching rules. These
+                    // are always case sensitive.
+                    // TODO: Should this be further normalized? 
+                    parent.setAttribute("data-" + kind + "-normalized", data[kind].toLowerCase());
+                });
 
             });;
     }

@@ -108,6 +108,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
+        print "handle_subscriptions", models
         if self.registry:
             self.registry.subscribe(models)
 
@@ -208,6 +209,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             if quality == PyTango.AttrQuality.ATTR_INVALID:
                 text = "?"  # do something more sophisticated here
             else:
+                # TODO: need more sophisticated logic here; currently
+                # spectrums/images break completely. I'm not sure
+                # we should even support those...
                 try:
                     text = evt_src.displayValue(value)
                 except AttributeError:

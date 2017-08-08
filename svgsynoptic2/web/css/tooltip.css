@@ -4,12 +4,15 @@
     padding: 3px;
     background: rgba(0,0,0,0.8);
     color: white;
+    /* overflow-x: auto; */
+    /* max-width: 100px; */
+    
 }
 
 .tooltip .model {
     font-weight: bold;
     color: white;
-    white-space: nowrap;
+    white-space: pre-wrap;
 }
 
 .tooltip .value {

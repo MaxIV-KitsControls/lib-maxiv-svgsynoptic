@@ -44,7 +44,6 @@ class JSInterface(QtCore.QObject):
 
     @QtCore.pyqtSlot(str, str)
     def hover(self, section, models):
-        print "hover", section, models
         self.hovered.emit(section, models)
 
     @QtCore.pyqtSlot(str)

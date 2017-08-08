@@ -60,3 +60,17 @@ text.hidden {
 .zoom.really-hidden {
     display: none;
 }
+
+/* things with this class will not cause mouse event (such as
+hiver or click) */
+svg .nopointer {
+    pointer-events: none !important;
+}
+
+/* things with this class will not be displayed, but still
+cause mouse events (such as hover and click) */
+svg .nodisplay {
+    opacity: 0 !important;
+    pointer-events: bounding-box;
+}
+
