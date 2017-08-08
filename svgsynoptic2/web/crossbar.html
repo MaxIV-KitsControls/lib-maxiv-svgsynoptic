@@ -1,0 +1,53 @@
+<html xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+
+    <head>
+        <link rel="stylesheet" href="css/main.css" />
+        <link rel="stylesheet" href="css/layers.css" />
+        <link rel="stylesheet" href="css/thumbnail.css" />
+        <link rel="stylesheet" href="css/quicklinks.css" />  
+        <link rel="stylesheet" href="css/tango.css" />
+        <link rel="stylesheet" href="css/tooltip.css" />
+    </head>
+
+
+    <body oncontextmenu="return false;">
+
+        <div id="view">
+            <img class="logo" src="images/maxiv_logo.png"></div>
+        </div>
+
+        <script src="js/libs/d3.js" charset="utf-8"></script>
+        <script src="js/libs/ramda.min.js"></script>
+        <script src="js/libs/lodash.min.js"></script>
+        <script src="js/libs/handlebars.js"></script>
+        <script src="js/libs/autobahn.min.js"></script>
+
+        <script src="js/util.js"></script>
+        <script src="js/view2.js"></script>
+        <script src="js/layers.js"></script>
+        <script src="js/thumbnail.js"></script>
+        <script src="js/quicklinks.js"></script>  
+        <script src="js/tooltip.js"></script>
+        <script src="js/synoptic.js"></script>
+        
+        <script src="js/crossbar_backend.js"></script>
+        <script src="js/main.js"></script>
+        
+        <script type="text/javascript">
+         // Here we need to kick things off by providing a SVG file
+         // for the synoptic. 
+         window.addEventListener("load", function () {
+             // loadSVG is a convenience method for loading a file.
+             // Path may be relative to this HTML file or absolute.
+             loadSVG("images/linac.svg", document.getElementById("view"));
+             
+             // It's also possible to e.g. generate SVG dynamically
+             // using JS and then start the synoptic:
+             // loadElement(your_svg_element);
+         });
+        </script>
+        
+    </body>
+    
+</html>
