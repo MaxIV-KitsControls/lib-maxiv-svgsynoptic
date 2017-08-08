@@ -59,7 +59,7 @@ window.addEventListener("load", function () {
         //var newSubs = R.pluck("model", subs);
 
         newSubs.sort();
-        newSubs = newSubs.join("\n");
+        //newSubs = newSubs.join("\n");
         console.log("subscribe " + newSubs);        
         if (newSubs != oldSubs) {
             Backend.subscribe(newSubs); 
