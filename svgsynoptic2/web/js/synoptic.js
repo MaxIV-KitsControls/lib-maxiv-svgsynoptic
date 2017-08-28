@@ -103,6 +103,15 @@ Synoptic = (function () {
                 return "model";
         }
 
+        function getDataset (event) {
+            // this differs between FF and webkit...
+            if (event.target instanceof SVGElementInstance) {
+                return event.target.correspondingUseElement.dataset;
+            } else {
+                return event.target.dataset;
+            }
+        }
+        
         // TODO: refactor, this probably belongs in the View...
         function setupMouse () {
             
@@ -118,17 +127,18 @@ Synoptic = (function () {
                 node.addEventListener("click", function (event) {
                     if (event.defaultPrevented) return;
                     // Only makes sense to click items with data
-                    fireEventCallbacks("click", event.target.dataset);
+                    console.log(event);
+                    fireEventCallbacks("click", getDataset(event));
                 });
                 // rightclick
                 node.addEventListener("contextmenu", function (event) {
                     if (event.defaultPrevented) return false;
-                    fireEventCallbacks("contextmenu", event.target.dataset);
+                    fireEventCallbacks("contextmenu", getDataset(event));
                     return false;
                 });
                 // hover
                 node.addEventListener("mouseover", function (event) {
-                    fireEventCallbacks("hover", event.target.dataset);
+                    fireEventCallbacks("hover", getDataset(event));
                 });
                 node.addEventListener("mouseout", function (d) {
                     fireEventCallbacks("hover", null);
@@ -139,6 +149,7 @@ Synoptic = (function () {
         setupMouse();
 
         // mark a model (could be several items) as "selected"
+        // Currently, we draw a circle and place it behind the node.
         function markModel (models) {
             models.forEach(function(model) {
                 var nodes = selectNodes("model", model);
@@ -146,8 +157,8 @@ Synoptic = (function () {
                     var marker = document.createElementNS(
                         "http://www.w3.org/2000/svg", "ellipse");
                     var bbox = util.transformedBoundingBox(node);
-                    marker.setAttribute("cx", bbox.left + bbox.width/2);
-                    marker.setAttribute("cy", bbox.top + bbox.height/2);
+                    marker.setAttribute("cx", bbox.x + bbox.width/2);
+                    marker.setAttribute("cy", bbox.y + bbox.height/2);
                     marker.setAttribute("rx", bbox.width);
                     marker.setAttribute("ry", bbox.height);
                     marker.setAttribute("class", "selection");
@@ -201,17 +212,11 @@ Synoptic = (function () {
         function getBBox (type, name) {
             var bboxes = [];
             var nodes = selectNodes(type, name);
-            /*             console.log("nodes", nodes);*/
             try {
                 util.forEach(nodes, function (node) {
-                    var bbox;
-                    /*                     bbox = util.transformedBoundingBox(node);*/
-                    bbox = node.getBoundingClientRect();
-                    
-                    /*                     console.log("bbox " + bbox.left + " " + bbox.top);*/
+                    var bbox = node.getBoundingClientRect();
                     // we'll also store the bbox in the node's data for easy
                     // access. 
-                    node.bbox = bbox;
                     bboxes.push(bbox);
                 });
                 return bboxes;
@@ -258,9 +263,8 @@ Synoptic = (function () {
         function updateVisibility (vbox) {
             
             vbox = vbox || view.getViewBox();
-            /*             console.log("vbox " + vbox.x); */
-            var sel = selectShownThings();
 
+            var sel = selectShownThings();
             var visibleNodes = [];
             util.forEach(sel, function (node) {
                 var bbox = getBBox("model", node.dataset.model),
@@ -274,11 +278,11 @@ Synoptic = (function () {
         }
 
         function zoomTo (type, name) {
+            console.log("zoomTo " + type + " " + name);            
             var sel = selectNodes(type, name);
-            var node = sel[0][0];
-            // var bbox = util.transformedBoundingBox(node);
-            console.log("zoomTo " + type + " " + name);
-            var bbox = getBBox(type, name)[0];
+            var node = sel[0];
+            // here we want the coordinates in SVG space
+            var bbox = util.transformedBoundingBox(node);
             console.log("bbox " + bbox.left + " " + bbox.top + " " +bbox.height + " " + bbox.width);
             view.moveToBBox(bbox, 200, 0.25);
         };

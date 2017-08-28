@@ -2,8 +2,8 @@ var synoptic;
 
 window.addEventListener("load", function () {
 
-    /* Note: "Backend" is our connection to the outside; it
-       may be a Qt widget or an ajax bridge; from here it all
+    /* Note: the "backend" is our connection to the outside; it
+       may be a Qt widget or a HTTP bridge; from here it all
        works the same, the API should be identical. */
     
     function main (container, svg, config) {
@@ -15,19 +15,24 @@ window.addEventListener("load", function () {
         synoptic = new Synoptic(container, svg, config);
 
         console.log("synoptic " + synoptic)
+
+        // if the user supplies a backend, we'll use it
+        backend = config.backend || new Backend();
+        console.log("backend", backend);
         
         // Mouse interaction
         synoptic.addEventCallback(
             "click", function (data) {
-                if (R.has("section", data))
-                    Backend.left_click("section", data.section);
-                if (R.has("model", data))
-                    Backend.left_click("model", data.model);
+                console.log("click ", data);
+                if (data && data.hasOwnProperty("section"))
+                    backend.leftClick("section", data.section);
+                if (data && data.hasOwnProperty("model"))
+                    backend.leftClick("model", data.model);
             });
         synoptic.addEventCallback(
             "contextmenu", function (data) {
                 if (R.has("model", data))
-                    Backend.right_click("model", data.model);
+                    backend.rightClick("model", data.model);
             });
 
         // synoptic.addEventCallback(
@@ -44,28 +49,20 @@ window.addEventListener("load", function () {
         //     });
         
         // Event subscription updates
-        synoptic.addEventCallback("subscribe", subscribe);
 
+        // send the list of visible things to the backend whenever
+        // it changes.
+        function subscribe(newSubs) {
+            newSubs.sort();
+            backend.subscribe(newSubs); 
+        }
+        synoptic.addEventCallback("subscribe", subscribe);
         // Backend.setup(); 
 
     }
 
     window.runSynoptic = main;
 
-    // send the list of visible things to the backend whenever
-    // it changes.
-    var oldSubs = "";
-    function subscribe(newSubs) {
-        //var newSubs = R.pluck("model", subs);
-
-        newSubs.sort();
-        //newSubs = newSubs.join("\n");
-        console.log("subscribe " + newSubs);        
-        if (newSubs != oldSubs) {
-            Backend.subscribe(newSubs); 
-            oldSubs = newSubs;
-        }
-    }
 
     // Load the actual SVG into the page
     function load (svg, element, config) {
