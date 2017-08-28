@@ -94,7 +94,7 @@ class SynopticWidget(QtGui.QWidget):
 
         # Inject JSInterface into the JS global namespace as "Backend"
         def addBackend():
-            frame.addToJavaScriptWindowObject('Backend', self.js)
+            frame.addToJavaScriptWindowObject('QtBackend', self.js)
         view.connect(frame, QtCore.SIGNAL("javaScriptWindowObjectCleared()"), addBackend)
 
         # load the page
