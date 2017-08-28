@@ -2,7 +2,7 @@
 A Taurus based TANGO backend for the SVG synoptic.
 """
 
-from inspect import isclass, getfile
+from inspect import isclass
 import json
 
 import numpy as np
@@ -10,18 +10,18 @@ from PyQt4 import QtCore
 import PyTango
 from synopticwidget import SynopticWidget
 from taurus import Attribute, Manager
-from taurus.core.taurusbasetypes import (AttrQuality, DataFormat,
-                                         TaurusEventType, TaurusSerializationMode)
+from taurus.core.taurusbasetypes import (
+    AttrQuality, TaurusEventType, TaurusSerializationMode)
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.panel import TaurusDevicePanel, TaurusWidget
+from taurus.qt.qtgui.container import TaurusWidget
+from taurus.qt.qtgui.panel import TaurusDevicePanel
 from taurus.qt.qtgui.application import TaurusApplication
 try:
     from taurus.core.tango.enums import DevState
 except ImportError:
     from PyTango import DevState, AttrQuality
 
-
-from taurusregistry import Registry
+from .taurusregistry import Registry
 
 
 class TooltipUpdater(QtCore.QThread):
