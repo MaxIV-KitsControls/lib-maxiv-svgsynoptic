@@ -103,12 +103,12 @@ Synoptic = (function () {
                 return "model";
         }
 
-        function getDataset (event) {
+        function getDataset (node) {
             // this differs between FF and webkit...
-            if (event.target instanceof SVGElementInstance) {
-                return event.target.correspondingUseElement.dataset;
+            if (node instanceof SVGElementInstance) {
+                return node.correspondingUseElement.dataset;
             } else {
-                return event.target.dataset;
+                return node.dataset;
             }
         }
         
@@ -128,17 +128,17 @@ Synoptic = (function () {
                     if (event.defaultPrevented) return;
                     // Only makes sense to click items with data
                     console.log(event);
-                    fireEventCallbacks("click", getDataset(event));
+                    fireEventCallbacks("click", getDataset(event.target));
                 });
                 // rightclick
                 node.addEventListener("contextmenu", function (event) {
                     if (event.defaultPrevented) return false;
-                    fireEventCallbacks("contextmenu", getDataset(event));
+                    fireEventCallbacks("contextmenu", getDataset(event.target));
                     return false;
                 });
                 // hover
                 node.addEventListener("mouseover", function (event) {
-                    fireEventCallbacks("hover", getDataset(event));
+                    fireEventCallbacks("hover", getDataset(event.target));
                 });
                 node.addEventListener("mouseout", function (d) {
                     fireEventCallbacks("hover", null);
