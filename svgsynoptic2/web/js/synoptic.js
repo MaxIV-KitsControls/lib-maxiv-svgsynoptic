@@ -264,17 +264,27 @@ Synoptic = (function () {
             
             vbox = vbox || view.getViewBox();
 
-            var sel = selectShownThings();
-            var visibleNodes = [];
+            var sel = selectShownThings(), visibleNodes = [];
             util.forEach(sel, function (node) {
                 var bbox = getBBox("model", node.dataset.model),
                     visible = isInView(bbox, vbox);
+                // the "hidden" class is used for visually hinting that something
+                // is not visible (by default it changes opacity to 50%). Mostly a
+                // debugging tool to be able to notice issues with the view
+                // detection... maybe it can be removed at some point.
                 util.setClass(node, "hidden", !visible);
-                if (visible) visibleNodes.push(node.dataset.model);
+                if (visible) {
+                    visibleNodes.push(node.dataset.model);
+                } else {
+                    // Node is out of view, let's clean out the data since we no
+                    // longer keep it up to date.
+                    var data = getDataset(node);
+                    data.value = null;
+                    data.quality = null;
+                }
             });
 
             fireSubscribeCallbacks(visibleNodes);
-            
         }
 
         function zoomTo (type, name) {
