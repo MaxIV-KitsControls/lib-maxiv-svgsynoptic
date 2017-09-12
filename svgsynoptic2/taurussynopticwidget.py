@@ -59,6 +59,9 @@ STATE_CLASSES = dict((state, json.dumps(getStateClasses(state)))
                      for name, state in PyTango.DevState.names.items())
 STATE_CLASSES[None] = json.dumps(getStateClasses())
 
+# lookup table to get state name as a string
+STATE_MAP = {code: name for name, code in PyTango.DevState.names.items()}
+
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
@@ -161,13 +164,14 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # TODO: clean this up!
 
         quality = evt_value.quality
-        quality_string = str(AttrQuality.values[quality])
+        quality_string = str(PyTango.AttrQuality.values[quality])
 
         if isinstance(value, (DevState, PyTango.DevState,
                               PyTango._PyTango.DevState)):
             classes = STATE_CLASSES[value]
             device, attr = model.rsplit("/", 1)
-            data = {"value": str(value), "quality": quality_string}
+            state = STATE_MAP[value]
+            data = {"value": state, "quality": quality_string}
 
             if attr.lower() == "state":
                 # this is the normal "State" attribute of the
