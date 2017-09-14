@@ -40,7 +40,10 @@
          window.addEventListener("load", function () {
              // loadSVG is a convenience method for loading a file.
              // Path may be relative to this HTML file or absolute.
-             loadSVG("images/linac.svg", document.getElementById("view"));
+             loadSVG("images/linac.svg",
+                     document.getElementById("view"),
+                     {backend: CrossbarBackend("ws://localhost:8080/ws", "realm1")}
+             );
              
              // It's also possible to e.g. generate SVG dynamically
              // using JS and then start the synoptic:
