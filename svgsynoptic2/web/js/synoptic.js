@@ -21,24 +21,17 @@ Synoptic = (function () {
         // around for a bit.
         view.addCallback(_.debounce(updateVisibility, 500, {leading: false}));
 
-        // // this is a debugging tool; uncomment it to be able to see the
-        // // current part of the image that the synoptic considers as "visible"
+        // This is a debugging tool; uncomment it to be able to see which
+        // part of the image that the synoptic considers as currently visible
         /* var viewRect = svg_.select("svg > g")
          *                    .append("rect")
          *                    .style("fill", "yellow")
-         *                    .style("stroke-width", "5%")
-         *                    .style("stroke", "red")
          *                    .style("opacity", 0.3);
-         * var viewRectText = svg_.select("svg > g").append("text")
-         *                        .text("test")
-         *                        .style("font-size", "100")
-         *                        .attr("dy", 100);
          * view.addCallback(_.debounce(function (bbox) {
          *     viewRect.attr(bbox);
          *     viewRectText
          *         .attr("x", bbox.x)
          *         .attr("y", bbox.y)
-         *         .text(Math.round(bbox.width) + ", " + Math.round(bbox.height))
          * }, 500));*/
         
         /********** optional plugins **********/
@@ -194,42 +187,45 @@ Synoptic = (function () {
 
         // return whether a given element is currently in view
         function isInView(bboxes, vbox) {
-            if (!bboxes)
+            if (!bboxes || bboxes.length === 0)
                 return false;
-            vbox = container.getBoundingClientRect();
-            /*             console.log("vbox " +  vbox.left);*/
             return bboxes.some(function (bbox) {
-                return (bbox.right > vbox.left &&
-                        bbox.top < vbox.bottom &&
-                        bbox.left < vbox.right &&
-                        bbox.bottom > vbox.top);
+                // is any part of the bbox inside the vbox?
+                return (bbox.x > vbox.x - bbox.width &&
+                        bbox.y > vbox.y - bbox.height &&
+                        bbox.x < vbox.x + vbox.width &&
+                        bbox.y < vbox.y + vbox.height);
             });
         }
 
         // calculate the "bounding box" (smallest encompassing rectangle) for
         // all nodes with a given type and name. This is used for checking if
         // the element is in view or not.
-        function getBBox (type, name) {
-            var bboxes = [];
-            var nodes = selectNodes(type, name);
+        // Note that the coordinates are in SVG space, so they never change
+        // as long as nobody moves elements around :P
+        function _getBBox (type, name) {
             try {
-                util.forEach(nodes, function (node) {
-                    var bbox = node.getBoundingClientRect();
-                    // we'll also store the bbox in the node's data for easy
-                    // access. 
-                    bboxes.push(bbox);
-                });
+                var bboxes = [];
+                util.forEach(selectNodes(type, name),
+                             function (node) {
+                                 var bbox;
+                                 bbox = util.transformedBoundingBox(node);
+                                 // we'll also store the bbox in the node's data for easy
+                                 // access.
+                                 bboxes.push(bbox)
+                             });
                 return bboxes;
             } catch (e) {
+                console.log(type + " " + name + " " + e);
                 // This probably means that the element is not displayed.
                 return [];
             }
         }
         // getBBox() gets used a lot (and the bboxes should never change),
-        // so we memoize it
-        /* var getBBox = _.memoize(_getBBox, function (a, b) {
-         *     return (a + ":" + b).toLowerCase();
-         * });*/
+        // so we memoize it to speed things up
+        var getBBox = _.memoize(_getBBox, function (a, b) {
+            return (a + ":" + b).toLowerCase();
+        });
         
         // return a selection containing the devices in the currently
         // shown layers and zoom levels.
@@ -259,7 +255,12 @@ Synoptic = (function () {
                 });
         }
                 
-        // Find all devices that can be seen and activate them
+        // Find all models that can be seen and activate them
+        // For this calculation we use bounding boxes, that is the smallest
+        // rectangle (aligned with the x and y axes) that encompasses the
+        // whole element. This is not very exact but it should only lead to
+        // false positives (e.g. activating models that are not actually
+        // visible), never false negatives (which would actually be a problem).
         function updateVisibility (vbox) {
             
             vbox = vbox || view.getViewBox();
