@@ -6,7 +6,6 @@ var View = (function () {
                               imageWidth, imageHeight) {
         var windowRatio = windowWidth / windowHeight,
             imageRatio = imageWidth / imageHeight;
-        console.log("fisk " + [windowWidth, windowHeight, imageWidth, imageHeight]);
         if (windowRatio < imageRatio) {
             return windowWidth / imageWidth;                
         }
@@ -28,8 +27,8 @@ var View = (function () {
         var zoomSteps = config.zoomSteps || [1, 10, 100],
             maxZoom = zoomSteps.slice(-1)[0];
 
-        var svgMain = svg.select("g"),
-            zoomSel = svgMain.selectAll("g.zoom");
+        var svgMain = svg.select("svg > g"),  // the toplevel group
+            zoomSel = svgMain.selectAll("g.zoom");  // all zoom levels
         
         // setup the mouse pan/zoom behavior
         var zoom = d3.behavior.zoom().on("zoom", function() {
