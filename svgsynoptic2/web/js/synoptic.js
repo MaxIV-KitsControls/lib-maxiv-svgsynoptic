@@ -52,10 +52,15 @@ Synoptic = (function () {
             var tooltip = new Tooltip(container, view, svg);
         }
 
+        if (window.QuickLinks) {
+            var quicklinks = new QuickLinks(container, svg, config.quicklinks);
+            quicklinks.addCallback("click", function (section) {zoomTo("section", section)});
+        }
+        
         // if (window.Notes) {
         //     var notes = new Notes(container, view, []);
         // }
-        
+
         /********** Utils **********/
         
         var selectNodes = function (type, name) {
