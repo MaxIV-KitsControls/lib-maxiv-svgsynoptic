@@ -15,12 +15,19 @@ QuickLinks = (function () {
             .append("div")
             .classed("quicklinks", true);
         
-        sections.forEach(function (name) {
+        sections.forEach(function (desc) {
+            console.log(desc);
+            if (Array.isArray(desc)) {
+                var sec = desc[0], title = desc[1];
+            } else {
+                var sec = title = desc;
+            }
+            
             node.append("div")
-                .text(name)            
+                .text(title)            
                 .classed("quicklink", true)
-                .classed(name, true)
-                .on("click", function () {runCallback("click", name)});
+                .classed(sec, true)
+                .on("click", function () {runCallback("click", sec)});
         });
 
         function runCallback(event, section) {
