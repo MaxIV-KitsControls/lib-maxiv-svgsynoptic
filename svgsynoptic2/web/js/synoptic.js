@@ -53,7 +53,7 @@ Synoptic = (function () {
         }
 
         if (window.QuickLinks) {
-            var quicklinks = new QuickLinks(container, svg, config.quicklinks);
+            var quicklinks = new QuickLinks(container, svg, config.quicklinks || []);
             quicklinks.addCallback("click", function (section) {zoomTo("section", section)});
         }
         
