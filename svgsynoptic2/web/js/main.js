@@ -101,7 +101,7 @@ window.addEventListener("load", function () {
             .filter(function () {
                 // console.log("sanitix " + d3.select(this).attr("inkscape:groupmode"));
                 return d3.select(this).attr("inkscape:groupmode") == "layer";})
-            .attr("id", function () {
+            .attr("data-name", function () {
                 //console.log("sanitix " + d3.select(this).attr("inkscape:label"));
                 return d3.select(this).attr("inkscape:label");})  // ugh
             .attr("display", null)

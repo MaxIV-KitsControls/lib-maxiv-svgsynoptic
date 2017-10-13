@@ -20,7 +20,7 @@ LayerTogglers = (function () {
             var name = this.getAttribute("id");
             console.log(name);
             node.append("div")
-                .text(name)
+                .text(this.getAttribute("data-name"))
                 .classed("layer-toggle", true)
                 .classed(name, true)
                 .on("click", function () {toggleLayer(name, this);});
