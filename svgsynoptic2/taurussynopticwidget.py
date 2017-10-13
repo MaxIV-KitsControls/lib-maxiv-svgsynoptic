@@ -13,7 +13,12 @@ from taurus import Attribute, Manager
 from taurus.core.taurusbasetypes import (
     AttrQuality, TaurusEventType, TaurusSerializationMode)
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.container import TaurusWidget
+try:
+    # Taurus >= 4
+    from taurus.qt.qtgui.container import TaurusWidget
+except ImportError:
+    # Taurus <= 3
+    from taurus.qt.qtgui.panel import TaurusWidget
 from taurus.qt.qtgui.panel import TaurusDevicePanel
 from taurus.qt.qtgui.application import TaurusApplication
 try:
