@@ -217,6 +217,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 # spectrums/images break completely. I'm not sure
                 # we should even support those...
                 try:
+                    fmt = evt_src.getFormat()
+                    if fmt:    # taurus4 issue: values without format
+                        value = fmt%value
                     text = evt_src.displayValue(value)
                 except AttributeError:
                     text = str(value)
