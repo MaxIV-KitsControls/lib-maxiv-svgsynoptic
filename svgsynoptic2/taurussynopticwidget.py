@@ -280,7 +280,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         if kind == "model" and (self.registry.device_validator.isValid(name) or
                                 self.registry.attribute_validator.isValid(name)):
             if name.lower() in self._panels:
-
                 widget = self._panels[name.lower()]
                 print "Found existing panel for %s:" % name, widget
                 if not widget.isVisible():
@@ -288,7 +287,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 widget.activateWindow()
                 widget.raise_()
                 return
-
 
             # check if we recognise the class of the device
             widget = self.get_device_panel(name)
@@ -322,8 +320,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 # TaurusForm getModel return list
                 if isinstance(w.getModel(), list):
                         self._panels.pop(str(w.getModel()[0]).lower(), None)
-               	else:
-                       	self._panels.pop(str(w.getModel()).lower(), None)
+                else:
+                        self._panels.pop(str(w.getModel()).lower(), None)
 
                 w.setModel(None)
                 print "done!"
