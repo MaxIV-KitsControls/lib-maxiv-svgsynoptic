@@ -135,6 +135,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # part of a spectrum or image through "slicing". It is up to the
         # client to do this, so we implement it here.
         frag = self.registry.eval_validator.getNames(model, fragment=True)[3]
+
         if frag:
             indices = frag[1:-1]
             try:
@@ -276,7 +277,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def on_rightclick(self, kind, name):
         "The default behavior for right clicking a device is to open a panel."
-        if kind == "model" and self.registry.device_validator.isValid(name):
+        if kind == "model" and (self.registry.device_validator.isValid(name) or
+                                self.registry.attribute_validator.isValid(name)):
             if name.lower() in self._panels:
 
                 widget = self._panels[name.lower()]
@@ -317,7 +319,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         if self.registry:
             with self.registry.lock:
                 print "cleaning up panel for", w.getModel(), "..."
-                self._panels.pop(str(w.getModel()).lower(), None)
+                # TaurusForm getModel return list
+                if isinstance(w.getModel(), list):
+                        self._panels.pop(str(w.getModel()[0]).lower(), None)
+               	else:
+                       	self._panels.pop(str(w.getModel()).lower(), None)
+
                 w.setModel(None)
                 print "done!"
 
