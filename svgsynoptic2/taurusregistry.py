@@ -65,17 +65,22 @@ class Registry(QtCore.QThread):
 
     def subscribe(self, models=[]):
         """Set the currently subscribed list of models."""
-        attrs = CaselessDict()
-        for model in models:
-            if self.device_validator.isValid(model):
-                # for convenience, we subscribe to State for any devices
-                attrs[model + "/State"] = True
-            elif (self.attribute_validator.isValid(model) or
-                    self.eval_validator.isValid(model)):
-                attrs[model] = True
-            else:
-                print "Invalid Taurus model %s!?" % model
-        self._attributes = attrs
+        try:
+            attrs = CaselessDict()
+            for model in models:
+                print('\n ^.models {0}'.format(models))
+                if self.device_validator.isValid(model):
+                    # for convenience, we subscribe to State for any devices
+                    attrs[model + "/State"] = True
+                elif (self.attribute_validator.isValid(model) or
+                        self.eval_validator.isValid(model)):
+                    attrs[model] = True
+                else:
+                    print "Invalid Taurus model %s!?" % model
+            self._attributes = attrs
+            print('\n ^._attributes {0}'.format(self._attributes))
+        except Exception as e:
+            print('Problem to subscribe list of models {0}'.format(e))
 
     def get_value(self, model):
         evt = self._last_event.get(model)

@@ -117,8 +117,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def handle_subscriptions(self, models=[]):
         print "handle_subscriptions", models
-        if self.registry:
+        try:
             self.registry.subscribe(models)
+        except Exception as e:
+            print('Problem to handle_subscriptions {0}'.format(e))
 
     def unsubscribe_listener(self, unsubscribed):
         """Tell the synoptic about unsubscribed models. This is
