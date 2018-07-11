@@ -116,9 +116,11 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print "handle_subscriptions", models
-        if self.registry:
+        # print "handle_subscriptions", models
+        try:
             self.registry.subscribe(models)
+        except Exception as e:
+            print('Problem to handle_subscriptions {0}'.format(e))
 
     def unsubscribe_listener(self, unsubscribed):
         """Tell the synoptic about unsubscribed models. This is
@@ -135,6 +137,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # part of a spectrum or image through "slicing". It is up to the
         # client to do this, so we implement it here.
         frag = self.registry.eval_validator.getNames(model, fragment=True)[3]
+
         if frag:
             indices = frag[1:-1]
             try:
@@ -150,6 +153,19 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             except ValueError:
                 pass
         return value
+
+    def set_custom_value(self, model, attr_value):
+        # this is the special case where value is modified for PyAlarm class
+        # when alarm is trigered PyAlarm attribute returns 'True' value, icon on synoptic is green
+        # set_custom_value change value for better alarms visualisation
+        # function can be customised for any other tango device classes
+        try:
+            if 'PyAlarm' in PyTango.get_device_proxy(model).info().dev_class:
+                return not(attr_value)
+        except Exception as e:
+            print('Problem to set custom value {0} \n for model {1}'.format(e, model))
+        finally:
+            return attr_value
 
     def attribute_listener(self, model, evt_src, evt_type, evt_value):
         "Handle events"
@@ -202,6 +218,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                              (model, value))
 
         elif isinstance(value, (bool, np.bool_)):
+            #Change value 
+            #value = self.set_custom_value('/'.join(model.split('/')[:-1]), value)
             classes = {"boolean": True,
                        "boolean-true": bool(value),
                        "boolean-false": not value}
@@ -245,7 +263,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         clicked section.  Override this function if you need something
         else.
         """
-        print "on_click", kind, name
+        # print "on_click", kind, name
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
@@ -264,9 +282,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def on_rightclick(self, kind, name):
         "The default behavior for right clicking a device is to open a panel."
-        if kind == "model" and self.registry.device_validator.isValid(name):
+        if kind == "model" and (self.registry.device_validator.isValid(name) or
+                                self.registry.attribute_validator.isValid(name)):
             if name.lower() in self._panels:
-
                 widget = self._panels[name.lower()]
                 print "Found existing panel for %s:" % name, widget
                 if not widget.isVisible():
@@ -274,7 +292,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 widget.activateWindow()
                 widget.raise_()
                 return
-
 
             # check if we recognise the class of the device
             widget = self.get_device_panel(name)
@@ -304,10 +321,15 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         become pretty bogged down."""
         if self.registry:
             with self.registry.lock:
-                print "cleaning up panel for", w.getModel(), "..."
-                self._panels.pop(str(w.getModel()).lower(), None)
+                # print "cleaning up panel for", w.getModel(), "..."
+                # TaurusForm getModel return list
+                if isinstance(w.getModel(), list):
+                        self._panels.pop(str(w.getModel()[0]).lower(), None)
+                else:
+                        self._panels.pop(str(w.getModel()).lower(), None)
+
                 w.setModel(None)
-                print "done!"
+                # print "done!"
 
     # Note: the tooltip stuff is broken and not currently in use.
     # Currently there is only the default tooltip which displays the
@@ -370,7 +392,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
 if __name__ == '__main__':
     import sys
-    print sys.argv[1]
+    # print sys.argv[1]
     # qapp = Qt.QApplication([])
     app = TaurusApplication()
     sw = TaurusSynopticWidget()
