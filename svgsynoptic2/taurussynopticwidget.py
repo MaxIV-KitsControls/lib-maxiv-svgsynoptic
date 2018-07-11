@@ -116,7 +116,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print "handle_subscriptions", models
+        # print "handle_subscriptions", models
         try:
             self.registry.subscribe(models)
         except Exception as e:
@@ -159,9 +159,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # when alarm is trigered PyAlarm attribute returns 'True' value, icon on synoptic is green
         # set_custom_value change value for better alarms visualisation
         # function can be customised for any other tango device classes
-        if 'PyAlarm' in PyTango.get_device_proxy(model).info().dev_class:
-            return not(attr_value)
-        else:
+        try:
+            if 'PyAlarm' in PyTango.get_device_proxy(model).info().dev_class:
+                return not(attr_value)
+        except Exception as e:
+            print('Problem to set custom value {0} \n for model {1}'.format(e, model))
+        finally:
             return attr_value
 
     def attribute_listener(self, model, evt_src, evt_type, evt_value):
@@ -216,7 +219,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
         elif isinstance(value, (bool, np.bool_)):
             #Change value 
-            value = self.set_custom_value('/'.join(model.split('/')[:-1]), value)
+            #value = self.set_custom_value('/'.join(model.split('/')[:-1]), value)
             classes = {"boolean": True,
                        "boolean-true": bool(value),
                        "boolean-false": not value}
@@ -260,7 +263,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         clicked section.  Override this function if you need something
         else.
         """
-        print "on_click", kind, name
+        # print "on_click", kind, name
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
@@ -318,7 +321,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         become pretty bogged down."""
         if self.registry:
             with self.registry.lock:
-                print "cleaning up panel for", w.getModel(), "..."
+                # print "cleaning up panel for", w.getModel(), "..."
                 # TaurusForm getModel return list
                 if isinstance(w.getModel(), list):
                         self._panels.pop(str(w.getModel()[0]).lower(), None)
@@ -326,7 +329,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                         self._panels.pop(str(w.getModel()).lower(), None)
 
                 w.setModel(None)
-                print "done!"
+                # print "done!"
 
     # Note: the tooltip stuff is broken and not currently in use.
     # Currently there is only the default tooltip which displays the
@@ -389,7 +392,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
 if __name__ == '__main__':
     import sys
-    print sys.argv[1]
+    # print sys.argv[1]
     # qapp = Qt.QApplication([])
     app = TaurusApplication()
     sw = TaurusSynopticWidget()

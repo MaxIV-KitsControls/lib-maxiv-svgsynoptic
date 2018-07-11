@@ -68,7 +68,6 @@ class Registry(QtCore.QThread):
         try:
             attrs = CaselessDict()
             for model in models:
-                print('\n ^.models {0}'.format(models))
                 if self.device_validator.isValid(model):
                     # for convenience, we subscribe to State for any devices
                     attrs[model + "/State"] = True
@@ -78,7 +77,6 @@ class Registry(QtCore.QThread):
                 else:
                     print "Invalid Taurus model %s!?" % model
             self._attributes = attrs
-            print('\n ^._attributes {0}'.format(self._attributes))
         except Exception as e:
             print('Problem to subscribe list of models {0}'.format(e))
 
