@@ -27,6 +27,8 @@ def main():
     # svgsynoptic library's path, not from the module's path.
     path = os.path.dirname(__file__)
     widget = ExampleSynopticWidget()
+    print(os.path.join(path, "example.html"))
+    widget.setConfig(os.path.join(path, "models.json"))
     widget.setModel(os.path.join(path, "example.html"))
     widget.resize(1000, 700)
     widget.show()

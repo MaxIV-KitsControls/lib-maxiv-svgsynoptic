@@ -66,7 +66,9 @@ window.addEventListener("load", function () {
 
     // Load the actual SVG into the page
     function load (svg, element, config) {
+        //console.log("models " + modelNames);
         console.log("load " + svg);
+        console.log(location.pathname);
         element = element || window;
         d3.xml(svg, "image/svg+xml", function(xml) {
             var svg = d3.select(document.importNode(xml.documentElement, true));
@@ -173,6 +175,29 @@ window.addEventListener("load", function () {
 
     }
 
+    function replaceName (name) {
+        //console.log("Lookup "+name);
+        var res = name.split("$");
+        var newname = "";
+        resLen = res.length;
+        if (resLen>2) {
+            for (i = 0; i < resLen-1; i=i+2) {
+                var newmodel =lookupName(res[i+1]);
+
+                newname += res[i] + newmodel;
+            }
+            newname += res[resLen-1];
+            console.log(name + " replaced by "+newname);
+            name=newname;
+        }
+        return name;
+    };
+
+    function lookupName(name) {
+        return modelNames[name];
+    };
+
+
     function activateSVG (svg) {
         // go through the svg and find all <desc> elements containing
         // definitions like e.g. "model=x/y/z". For those found we set
@@ -190,6 +215,11 @@ window.addEventListener("load", function () {
                     if (match) {
                         var kind = match[1].trim().toLowerCase(),  
                             name = match[2].trim();
+                        if (kind.toLowerCase()=="model") {
+                            if (typeof modelNames !== 'undefined') {
+                                name=replaceName(name);
+                            }
+                        }
                         data[kind] = name;
                     }
                 }, this);
