@@ -177,6 +177,22 @@ window.addEventListener("load", function () {
 
     function replaceName (name) {
         //console.log("Lookup "+name);
+        var myregex =/\$(.*?)\$/gm;
+        match = myregex.exec(name);
+        var newname = name;
+        while (match != null) {
+            //look up name without surrounding $..$
+            var newmodel =lookupName(match[0].substring(1, match[0].length-1));
+            newname=newname.replace(match[0],newmodel);
+            console.log("Look up models: "+match[0]+ " replaced by "+newmodel);
+            match = myregex.exec(name);
+        }
+        console.log("New model: "+newname);
+        return newname;
+    };
+
+    function replaceName2 (name) {
+        //console.log("Lookup "+name);
         var res = name.split("$");
         var newname = "";
         resLen = res.length;
@@ -194,7 +210,13 @@ window.addEventListener("load", function () {
     };
 
     function lookupName(name) {
-        return modelNames[name];
+        if (modelNames.hasOwnProperty(name)) {
+            return modelNames[name];
+        }
+        else {
+            console.log("Can't find name: " + name);
+            return "";
+        }
     };
 
 

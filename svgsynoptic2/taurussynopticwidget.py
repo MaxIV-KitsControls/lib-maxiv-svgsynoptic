@@ -117,7 +117,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print "handle_subscriptions tsw ", models
+        print "handle_subscriptions ", models
         if self.registry:
             self.registry.subscribe(models)
 
