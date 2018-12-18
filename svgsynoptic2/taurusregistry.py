@@ -75,12 +75,18 @@ class Registry(QtCore.QThread):
                 modelstate = model + "/State"
                 attrs[modelstate] = True
                 if modelstate not in taurusattrs.keys():
-                    taurusattrs[modelstate] = Attribute(modelstate)
+                    try:
+                        taurusattrs[modelstate] = Attribute(modelstate)
+                    except TaurusException as e:
+                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
                 if model not in taurusattrs.keys():
-                    taurusattrs[model] = Attribute(model)
+                    try:
+                        taurusattrs[model] = Attribute(model)
+                    except TaurusException as e:
+                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
             else:
                 print "Invalid Taurus model %s!?" % model
         self._attributes = attrs
