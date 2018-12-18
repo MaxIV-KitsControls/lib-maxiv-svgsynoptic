@@ -78,7 +78,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
     def __init__(self, parent=None, **kwargs):
         super(TaurusSynopticWidget, self).__init__(parent=parent)
         print('init TaurusSynopticWidget')
-        Manager().setSerializationMode(TaurusSerializationMode.Concurrent)
+        Manager().setSerializationMode(TaurusSerializationMode.Serial)
         self.tooltip_trigger.connect(self._update_device_tooltip)
         self._panels = {}
 

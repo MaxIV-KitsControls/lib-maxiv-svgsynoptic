@@ -4,6 +4,15 @@
 .on {
     background: green;
 }
+
+.true {
+    background: green;
+}
+
+.false {
+    background: gray;
+}
+
 .overlay {
     font-size: 30pt;
     position: absolute;

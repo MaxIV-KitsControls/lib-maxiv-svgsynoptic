@@ -1,5 +1,6 @@
 from threading import Lock, Event
 from time import sleep
+import time
 
 from PyQt4 import QtCore
 from taurus import Attribute
@@ -43,6 +44,7 @@ class Registry(QtCore.QThread):
         self.unsubscribe_callback = unsubscribe_callback
         self.period = period
         self._attributes = None
+        self._taurus_attributes = CaselessDict()
         self._config = CaselessDict()
         self._last_event = TTLDict(default_ttl=10)
         self.attribute_validator = TangoAttributeNameValidator()
@@ -66,16 +68,24 @@ class Registry(QtCore.QThread):
     def subscribe(self, models=[]):
         """Set the currently subscribed list of models."""
         attrs = CaselessDict()
+        taurusattrs = self._taurus_attributes
         for model in models:
             if self.device_validator.isValid(model):
                 # for convenience, we subscribe to State for any devices
                 attrs[model + "/State"] = True
+                if model + "/State" not in taurusattrs.keys():
+                    taurusattrs[model + "/State"] = Attribute(model + "/State")
+                    print "add Attribute", model + "/State"
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
+                if model not in taurusattrs.keys():
+                    taurusattrs[model] = Attribute(model)
+                    print "add Attribute", model
             else:
                 print "Invalid Taurus model %s!?" % model
         self._attributes = attrs
+        self._taurus_attributes = taurusattrs
 
     def get_value(self, model):
         evt = self._last_event.get(model)
@@ -86,10 +96,13 @@ class Registry(QtCore.QThread):
         return self._config.get(model)
 
     def handle_event(self, evt_src, *args):
+        #tic = time.time()
         # lookup the model(s) for this listener and notify them
         models = self.inverse_listeners.get(evt_src, [])
         for model in models:
             self.event_callback(model, evt_src, *args)
+        #toc = time.time()
+        #print "Updating", str(evt_src).split(":10000/", 1)[1], ",", len(models), "listeners,", 1000*(toc - tic), 'ms', args[0]
 
     def _update(self, attributes=CaselessDict()):
 
@@ -111,7 +124,9 @@ class Registry(QtCore.QThread):
             if self._attributes:
                 return
             try:
+
                 self._add_listener(attr)
+
             except (TypeError, PyTango.DevFailed) as e:
                 print "Failed to setup listener for", attr, e
 
@@ -119,7 +134,11 @@ class Registry(QtCore.QThread):
 
     def _add_listener(self, model):
         try:
-            listener = self.listeners[model] = Attribute(model)
+            #tic = time.time()
+            #listener = self.listeners[model] = Attribute(model)
+            listener = self.listeners[model] = self._taurus_attributes[model]
+            #toc = time.time()
+            #print "add listener", model, 1000 * (toc - tic), 'ms'
             # to make loopkups more efficient, we also keep an "inverted"
             # mapping of listeners->models. But since some models may map
             # to the *same* listener (e.g. eval expressions), this must
