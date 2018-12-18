@@ -191,24 +191,6 @@ window.addEventListener("load", function () {
         return newname;
     };
 
-    function replaceName2 (name) {
-        //console.log("Lookup "+name);
-        var res = name.split("$");
-        var newname = "";
-        resLen = res.length;
-        if (resLen>2) {
-            for (i = 0; i < resLen-1; i=i+2) {
-                var newmodel =lookupName(res[i+1]);
-
-                newname += res[i] + newmodel;
-            }
-            newname += res[resLen-1];
-            console.log(name + " replaced by "+newname);
-            name=newname;
-        }
-        return name;
-    };
-
     function lookupName(name) {
         if (modelNames.hasOwnProperty(name)) {
             return modelNames[name];
