@@ -79,6 +79,22 @@ Adding an attribute as a model (e.g. "model=sys/tg_test/1/ampli") to a text elem
 
 It's also possible to name a part of the drawing as a "section" by setting a desc like "section=MySection". This part will then become clickable, causing the view to zoom in on it.
 
+##### Models in separate json file #####
+It is possible to store the actual tango models in a separate json config file, and have aliases in the SVG file. The aliases must be surrounded by $-signs, for example:
+
+```model=$valve1$```
+
+The config file then needs a line:
+ 
+ ```"valve1" : "bxxx/vac/valve-01"```
+
+The model list is injected into the html-file. In order for this to work the html file needs a placeholder where this should go:
+
+```<script type="text/javascript">/*configplaceholder*/</script>```
+
+Finally, to import the list of models call the setConfig() function of the widget giving the name of the json file. See also the "tango" example.
+
+
 
 #### Tips & tricks ####
 
