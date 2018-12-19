@@ -1,6 +1,5 @@
 from threading import Lock, Event
 from time import sleep
-import time
 
 from PyQt4 import QtCore
 from taurus import Attribute
