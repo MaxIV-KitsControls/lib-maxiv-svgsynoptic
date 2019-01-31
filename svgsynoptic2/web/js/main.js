@@ -66,7 +66,9 @@ window.addEventListener("load", function () {
 
     // Load the actual SVG into the page
     function load (svg, element, config) {
+        //console.log("models " + modelNames);
         console.log("load " + svg);
+        console.log(location.pathname);
         element = element || window;
         d3.xml(svg, "image/svg+xml", function(xml) {
             var svg = d3.select(document.importNode(xml.documentElement, true));
@@ -173,6 +175,33 @@ window.addEventListener("load", function () {
 
     }
 
+    function replaceName (name) {
+        //console.log("Lookup "+name);
+        var myregex =/\$(.*?)\$/gm;
+        match = myregex.exec(name);
+        var newname = name;
+        while (match != null) {
+            //look up name without surrounding $..$
+            var newmodel =lookupName(match[0].substring(1, match[0].length-1));
+            newname=newname.replace(match[0],newmodel);
+            console.log("Look up models: "+match[0]+ " replaced by "+newmodel);
+            match = myregex.exec(name);
+        }
+        console.log("New model: "+newname);
+        return newname;
+    };
+
+    function lookupName(name) {
+        if (modelNames.hasOwnProperty(name)) {
+            return modelNames[name];
+        }
+        else {
+            console.log("Can't find name: " + name);
+            return "";
+        }
+    };
+
+
     function activateSVG (svg) {
         // go through the svg and find all <desc> elements containing
         // definitions like e.g. "model=x/y/z". For those found we set
@@ -190,6 +219,11 @@ window.addEventListener("load", function () {
                     if (match) {
                         var kind = match[1].trim().toLowerCase(),  
                             name = match[2].trim();
+                        if (kind.toLowerCase()=="model") {
+                            if (typeof modelNames !== 'undefined') {
+                                name=replaceName(name);
+                            }
+                        }
                         data[kind] = name;
                     }
                 }, this);

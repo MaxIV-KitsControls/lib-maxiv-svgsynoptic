@@ -43,6 +43,7 @@ class Registry(QtCore.QThread):
         self.unsubscribe_callback = unsubscribe_callback
         self.period = period
         self._attributes = None
+        self._taurus_attributes = CaselessDict()
         self._config = CaselessDict()
         self._last_event = TTLDict(default_ttl=10)
         self.attribute_validator = TangoAttributeNameValidator()
@@ -66,16 +67,29 @@ class Registry(QtCore.QThread):
     def subscribe(self, models=[]):
         """Set the currently subscribed list of models."""
         attrs = CaselessDict()
+        taurusattrs = self._taurus_attributes
         for model in models:
             if self.device_validator.isValid(model):
                 # for convenience, we subscribe to State for any devices
-                attrs[model + "/State"] = True
+                modelstate = model + "/State"
+                attrs[modelstate] = True
+                if modelstate not in taurusattrs.keys():
+                    try:
+                        taurusattrs[modelstate] = Attribute(modelstate)
+                    except TaurusException as e:
+                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
+                if model not in taurusattrs.keys():
+                    try:
+                        taurusattrs[model] = Attribute(model)
+                    except TaurusException as e:
+                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
             else:
                 print "Invalid Taurus model %s!?" % model
         self._attributes = attrs
+        self._taurus_attributes = taurusattrs
 
     def get_value(self, model):
         evt = self._last_event.get(model)
@@ -119,7 +133,7 @@ class Registry(QtCore.QThread):
 
     def _add_listener(self, model):
         try:
-            listener = self.listeners[model] = Attribute(model)
+            listener = self.listeners[model] = self._taurus_attributes[model]
             # to make loopkups more efficient, we also keep an "inverted"
             # mapping of listeners->models. But since some models may map
             # to the *same* listener (e.g. eval expressions), this must

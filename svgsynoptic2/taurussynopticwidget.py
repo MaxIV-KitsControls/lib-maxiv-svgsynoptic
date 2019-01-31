@@ -76,7 +76,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def __init__(self, parent=None, **kwargs):
         super(TaurusSynopticWidget, self).__init__(parent=parent)
-        Manager().setSerializationMode(TaurusSerializationMode.Concurrent)
+        print('init TaurusSynopticWidget')
+        Manager().setSerializationMode(TaurusSerializationMode.Serial)
         self.tooltip_trigger.connect(self._update_device_tooltip)
         self._panels = {}
 
@@ -115,7 +116,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print "handle_subscriptions", models
+        print "handle_subscriptions ", models
         if self.registry:
             self.registry.subscribe(models)
 

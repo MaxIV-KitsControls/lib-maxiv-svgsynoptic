@@ -6,6 +6,7 @@ various areas to zoom in.
 
 import logging
 import os
+import json
 
 from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings, QWebInspector
@@ -46,6 +47,7 @@ class SynopticWidget(QtGui.QWidget):
         self.subscribe.connect(self._handle_subscriptions)
         self._url = url
         self._setup_ui(url)
+        self._modelNames = None
 
     def _setup_ui(self, url=None, section=None):
         self.hbox = hbox = QtGui.QHBoxLayout(self)
@@ -65,6 +67,19 @@ class SynopticWidget(QtGui.QWidget):
         self._setup_inspector(view)
         self.splitter.addWidget(view)
         print "set_url", url
+
+    def setConfig(self, configFile):
+        abspath = os.path.dirname(os.path.abspath(configFile))
+        #build a javascript defining the models
+        text = "var modelNames ={"
+        with open(configFile, 'r') as read_file:
+            data = json.load(read_file)
+            for key in data.keys():
+                text += key + " : \"" + data[key] + "\","
+        text+="};"
+        print(text)
+        self._modelNames = text
+
 
     def _create_view(self, html=None, section=None):
         "Create the webview that will display the synoptic itself"
@@ -106,8 +121,15 @@ class SynopticWidget(QtGui.QWidget):
         # some ugly magic to get the path to the SVG file right. It
         # needs to be absolute because local paths go to the base URL.
         abspath = os.path.dirname(os.path.abspath(html))
+        print("absolute path "+abspath + '/' + html)
+
         with open(html) as f:
             text = f.read().replace("${path}", abspath)  # TODO: use template
+            if self._modelNames is not None:
+                if "/*configplaceholder*/" in text:
+                    print("placeholder found")
+                    texta,textb = text.split("/*configplaceholder*/", 1)
+                    text =texta + self._modelNames + textb
             view.setHtml(text, base_url)
 
         return view
