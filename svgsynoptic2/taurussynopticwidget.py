@@ -9,15 +9,14 @@ import numpy as np
 from PyQt4 import QtCore
 import PyTango
 from synopticwidget import SynopticWidget
-from taurus import Attribute, Manager
+from taurus import Attribute, Manager, Release
 from taurus.core.taurusbasetypes import (
     AttrQuality, TaurusEventType, TaurusSerializationMode)
 from taurus.external.qt import Qt
+TAURUS_VERSION = Release.version_info[0]
 try:
-    # Taurus >= 4
     from taurus.qt.qtgui.container import TaurusWidget
 except ImportError:
-    # Taurus <= 3
     from taurus.qt.qtgui.panel import TaurusWidget
 from taurus.qt.qtgui.panel import TaurusDevicePanel
 from taurus.qt.qtgui.application import TaurusApplication
@@ -223,8 +222,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 # spectrums/images break completely. I'm not sure
                 # we should even support those...
                 try:
-                    fmt = evt_src.getFormat()
-                    value = fmt%value    # taurus4 issue: values without format
+                    if TAURUS_VERSION == 4:
+                        fmt = evt_src.getFormat()
+                        value = fmt%value    # taurus4 issue: values without format
                     text = evt_src.displayValue(value)
                 except AttributeError:
                     text = str(value)
