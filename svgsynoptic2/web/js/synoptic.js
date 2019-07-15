@@ -130,7 +130,7 @@ Synoptic = (function () {
                 });
                 // rightclick
                 node.addEventListener("contextmenu", function (event) {
-                    if (event.defaultPrevented) return false;
+                    if (event.defaultPrevented) return;
                     fireEventCallbacks("contextmenu", getDataset(event.target));
                     return false;
                 });

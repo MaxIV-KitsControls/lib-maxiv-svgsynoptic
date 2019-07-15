@@ -86,6 +86,8 @@ class Registry(QtCore.QThread):
                         taurusattrs[model] = Attribute(model)
                     except TaurusException as e:
                         print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                    except Exception as e:
+                        print "Failed to create Taurus Attribute for model %s!" % (model)
             else:
                 print "Invalid Taurus model %s!?" % model
         self._attributes = attrs
@@ -146,6 +148,8 @@ class Registry(QtCore.QThread):
             return listener
         except (TaurusException, AttributeError) as e:
             print "Failed to subscribe to model %s! %s" % (model, e)
+        except Exception:
+            print "Failed to subscribe to model %s!" % (model)
 
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)
