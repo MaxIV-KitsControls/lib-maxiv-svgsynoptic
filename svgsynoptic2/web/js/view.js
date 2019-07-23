@@ -22,14 +22,15 @@ var View = (function () {
            points of zoomSteps also limits user zooming.  If the
            number of steps is smaller than the number of zoom levels
            in the SVG, those higher zoom levels will not be visible. */
-        
+        var oldZoomLevel = -1;
         config = config || {};
         var zoomSteps = config.zoomSteps || [1, 10, 100],
             maxZoom = zoomSteps.slice(-1)[0];
 
         var svgMain = svg.select("svg > g"),  // the toplevel group
             zoomSel = svgMain.selectAll("g.zoom");  // all zoom levels
-        
+        console.log("--------------------------------------------blabla..");
+        console.log(zoomSel);
         // setup the mouse pan/zoom behavior
         var zoom = d3.behavior.zoom().on("zoom", function() {
             svgMain.attr("transform",
@@ -40,11 +41,13 @@ var View = (function () {
             updateZoomLevel(d3.event.scale);
             fireChangeCallbacks();
         });
+        console.log("--------------------------------------------call zoom..");
         svg.call(zoom);
 
         // update the zoom levels to that the one that corresponds to
         // the current scale is visible
         var updateZoomLevel = _.throttle(function (scale) {
+            console.log("-------------------------------------------updateZoomLevel..");
             var relativeScale = scale / minimumScale, zoomLevel;
             /* This is a primitive way to switch zoom level.
                Can't see a way to make this completely general
@@ -57,9 +60,24 @@ var View = (function () {
                 }
                 zoomLevel = i;  // never go beyond the highest level
             }
-            if (zoomLevel != oldZoomLevel) {
+            if (oldZoomLevel == -1) {
                 var levelClass = ".level" + zoomLevel;
                 // hide the old zoom level...
+                console.log("--------------------------------------------First change of zoom level..");
+                zoomSel.filter(":not(" + levelClass + ")")
+                    .classed("hidden", true)
+                    .attr("opacity", 0)
+                    .classed("really-hidden", true)
+                // ...and show the new
+                zoomSel.filter(levelClass)
+                    .classed({"hidden": false, "really-hidden": false})
+                    .attr("opacity", 1);
+                oldZoomLevel = zoomLevel;
+            } 
+            else if (zoomLevel != oldZoomLevel) {
+                var levelClass = ".level" + zoomLevel;
+                // hide the old zoom level...
+                console.log("--------------------------------------------Changing zoom level..");
                 zoomSel.filter(":not(" + levelClass + ")")
                     .classed("hidden", true)
                     .transition().duration(400)
@@ -91,6 +109,8 @@ var View = (function () {
             return zoom.scale(scale).translate(translate);
         }
 
+
+        
         // add the SVG to the page
         console.log(element);
         element.appendChild(svg.node());
@@ -109,6 +129,7 @@ var View = (function () {
         minimumScale = fitImageInWindow(element.clientWidth,
                                         element.clientHeight,
                                         svgWidth, svgHeight);
+        console.log("--------------------------------------------zoom.scale(minimumScale)");
         zoom.scale(minimumScale)
             .scaleExtent([minimumScale, minimumScale*maxZoom]);
 
