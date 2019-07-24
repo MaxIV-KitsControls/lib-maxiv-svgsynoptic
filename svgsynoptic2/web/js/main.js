@@ -124,7 +124,15 @@ window.addEventListener("load", function () {
                     !R.contains(name, ["background", "symbols"]);
             })
             .classed("togglable", true);
-
+        // Hide the symbols layer, should be handled by css but that doesn't always work
+        layers
+            .filter(function () {
+                var name = d3.select(this).attr("inkscape:label");
+                return R.contains(name, ["symbols"]);
+            })
+            .classed("hidden", true)
+            .attr("opacity", 0)
+            .classed("really-hidden", true);  
         // activate the zoom levels (also in need of improvement)
         var zoomlevels = svg.selectAll("svg > g > g > g");
         zoomlevels
