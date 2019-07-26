@@ -10,6 +10,7 @@ Synoptic = (function () {
         // the View takes care of the basic navigation; zooming,
         // panning etc, and switching between detail levels.
         var view = new View(container, svg_, config.view);
+        view.reset();
 
         var svg = svg_.node();
         
