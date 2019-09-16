@@ -104,11 +104,11 @@ Synoptic = (function () {
 
         function getDataset (node) {
             // this differs between FF and webkit...
-            if (node instanceof SVGElementInstance) {
-                return node.correspondingUseElement.dataset;
-            } else {
+            //if (node instanceof SVGElementInstance) {
+            //    return node.correspondingUseElement.dataset;
+            //} else {
                 return node.dataset;
-            }
+            //}
         }
         
         // TODO: refactor, this probably belongs in the View...
