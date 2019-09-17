@@ -1,0 +1,76 @@
+body, html {
+    font-family: Helvetica, Arial, Sans-Serif;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    background: #eee;
+}
+
+#view {
+    height: 100%;
+    overflow: hidden;
+    -webkit-transform: translateZ(0);
+    position: relative;
+}
+
+img.logo {
+    position: absolute;
+    right: 10px;
+    opacity: 0.5;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+#symbols {
+    display: none;
+}
+
+svg {
+    text-rendering: optimizeSpeed;
+    shape-rendering: optimizeSpeed;
+}
+
+ellipse.selection {
+    opacity: 0.25;
+    fill: black;
+    stroke: none;
+    pointer-events: none;
+}
+
+.model.hidden {
+    opacity: 0.5;
+}
+
+/* we want the pointer to ignore most text but not text with models
+because there we may want to add behavior (e.g. tooltip)*/
+text:not(.model):not(.section), tspan:not(.model):not(.section) {
+    pointer-events: none;
+}
+
+text.hidden {
+    display: none;
+    /* opacity: 0.5; */
+}
+
+.zoom.hidden {
+    pointer-events: none;
+}
+
+.zoom.really-hidden {
+    display: none;
+}
+
+/* things with this class will not cause mouse event (such as
+hiver or click) */
+svg .nopointer {
+    pointer-events: none !important;
+}
+
+/* things with this class will not be displayed, but still
+cause mouse events (such as hover and click) */
+svg .nodisplay {
+    opacity: 0 !important;
+    pointer-events: bounding-box;
+}
+

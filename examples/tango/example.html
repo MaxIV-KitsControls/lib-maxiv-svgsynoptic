@@ -19,6 +19,7 @@
   
   <!-- To use a local CSS file, prefix it like below to get the correct path. -->
   <link rel="stylesheet" href="example1.css" />
+  <link rel="stylesheet" href="css/bool.css" />
 </head>
 
 
@@ -60,13 +61,13 @@
         // disabling zoom by only allowing one step
         var config = {
             windowSize: {width: 400, height: 600},
-            view: {zoomSteps: [1]}
+            view: {zoomSteps: [1, 10, 100]}
         };
         
         // loadSVG is a convenience method for loading a file.  Note
         // that we need to give the absolute path to the file. ${path}
         // will be replaced with the path to this HTML file.
-        loadSVG("example.svg", container, config);
+        loadSVG("cryo.svg", container, config);
                 
     });
 

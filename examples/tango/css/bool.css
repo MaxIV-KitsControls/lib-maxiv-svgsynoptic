@@ -1,0 +1,11 @@
+.boolean[data-value="true"]:not(text) {
+    fill: cyan !important;
+    background: cyan;
+}
+
+ 
+
+.boolean[data-value="false"]:not(text) {
+    fill: white !important;
+    background: white;
+}
