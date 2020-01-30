@@ -305,8 +305,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         become pretty bogged down."""
         if self.registry:
             with self.registry.lock:
-                print "cleaning up panel for", w.getModel(), "..."
-                self._panels.pop(str(w.getModel()).lower(), None)
+                print "cleaning up panel for", w.windowTitle(), "..."
+                self._panels.pop(str(w.windowTitle()).lower(), None)
                 w.setModel(None)
                 print "done!"
 
