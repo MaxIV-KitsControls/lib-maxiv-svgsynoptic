@@ -43,6 +43,8 @@ coverage.xml
 docs/_build/
 # PyBuilder
 target/
+# 2to3
+*.bak
 
 # Emacs
 *~

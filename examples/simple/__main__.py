@@ -18,7 +18,7 @@ class ExampleSynopticWidget(SynopticWidget):
 
     def on_click(self, kind, name):
         # Overriding the click event handler to print information
-        print "click", kind, name
+        print("click", kind, name)
 
 
 def main():

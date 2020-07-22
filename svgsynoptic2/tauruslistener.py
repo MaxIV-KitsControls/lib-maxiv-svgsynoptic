@@ -2,13 +2,13 @@ import sys
 
 from taurus import Attribute, Manager
 from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
-import PyTango
+import tango
 
 Manager().changeDefaultPollingPeriod(1000)
 
 
 def error_str(err):
-    if isinstance(err, PyTango.DevFailed):
+    if isinstance(err, tango.DevFailed):
         err = err[0]
         return "error"
     return str(err)
@@ -23,7 +23,7 @@ class TaurusAttribute(object):
     string through the web socket to the client"""
 
     def __init__(self, name, callback):
-        print self.__class__.__name__, name
+        print(self.__class__.__name__, name)
         self.name = name
         self.callback = callback
         self._last_time = 0
@@ -58,7 +58,7 @@ class TaurusAttribute(object):
                 fmt = evt_value.data_format
                 if fmt == DataFormat._0D:
                     html = modelObj.displayValue(value)
-                    if isinstance(value, PyTango._PyTango.DevState):
+                    if isinstance(value, tango._tango.DevState):
                         value = value.name
                     if isinstance(value, str):
                         html = value.replace("\n", "<br>")
@@ -81,12 +81,12 @@ class TaurusAttribute(object):
 
     def clear(self):
         try:
-            print "clear", self.attribute
+            print("clear", self.attribute)
             self.attribute.removeListener(self)
             del self.attribute
 
-        except PyTango.DevFailed as e:
-            print >>sys.stderr, "Could not unsubscribe %s: %r" % (self.name, e)
+        except tango.DevFailed as e:
+            print("Could not unsubscribe %s: %r" % (self.name, e), file=sys.stderr)
 
     # def __del__(self):
     #     print "__del__ listener"

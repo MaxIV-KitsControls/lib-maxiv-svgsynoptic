@@ -11,7 +11,7 @@ import json
 from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings, QWebInspector
 
-from jsinterface import JSInterface
+from .jsinterface import JSInterface
 
 
 class LoggingWebPage(QWebPage):
@@ -27,7 +27,7 @@ class LoggingWebPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, lineNumber, sourceID):
         # don't use the logger for now; too verbose :)
-        print "JsConsole(%s:%d):\n\t%s" % (sourceID, lineNumber, msg)
+        print("JsConsole(%s:%d):\n\t%s" % (sourceID, lineNumber, msg))
 
 
 class SynopticWidget(QtGui.QWidget):
@@ -66,7 +66,7 @@ class SynopticWidget(QtGui.QWidget):
         view = self._create_view(url, section)
         self._setup_inspector(view)
         self.splitter.addWidget(view)
-        print "set_url", url
+        print("set_url", url)
 
     def setConfig(self, configFile):
         abspath = os.path.dirname(os.path.abspath(configFile))
@@ -74,7 +74,7 @@ class SynopticWidget(QtGui.QWidget):
         text = "var modelNames ={"
         with open(configFile, 'r') as read_file:
             data = json.load(read_file)
-            for key in data.keys():
+            for key in list(data.keys()):
                 text += key + " : \"" + data[key] + "\","
         text+="};"
         print(text)
@@ -121,7 +121,7 @@ class SynopticWidget(QtGui.QWidget):
         # some ugly magic to get the path to the SVG file right. It
         # needs to be absolute because local paths go to the base URL.
         abspath = os.path.dirname(os.path.abspath(html))
-        print("absolute path "+abspath + '/' + html)
+        print(("absolute path "+abspath + '/' + html))
 
         with open(html) as f:
             text = f.read().replace("${path}", abspath)  # TODO: use template
@@ -218,7 +218,7 @@ class SynopticWidget(QtGui.QWidget):
         """Set a list of items as 'selected'. By default unselects all
         previously selected things first.
         """
-        print "select", kind, names
+        print("select", kind, names)
         if replace:
             self.js.evaluate("synoptic.unselectAll()")
         if names:
@@ -234,7 +234,7 @@ class SynopticWidget(QtGui.QWidget):
 
 if __name__ == '__main__':
     import sys
-    print sys.argv[1]
+    print(sys.argv[1])
     qapp = Qt.QApplication([])
     sw = SynopticWidget(sys.argv[1])
     sw.show()

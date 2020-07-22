@@ -14,13 +14,13 @@ except ImportError:
         AttributeNameValidator as TangoAttributeNameValidator,
         DeviceNameValidator as TangoDeviceNameValidator)
     from taurus.core.evaluation import EvaluationAttributeNameValidator
-import PyTango
+import tango
 
 # We can't use pytango's CaselessDict since it does not keep the original
 # case of the keys :(
-from caseless import CaselessDictionary as CaselessDict
+from .caseless import CaselessDictionary as CaselessDict
 
-from ttldict import TTLDict
+from .ttldict import TTLDict
 
 
 class Registry(QtCore.QThread):
@@ -73,23 +73,23 @@ class Registry(QtCore.QThread):
                 # for convenience, we subscribe to State for any devices
                 modelstate = model + "/State"
                 attrs[modelstate] = True
-                if modelstate not in taurusattrs.keys():
+                if modelstate not in list(taurusattrs.keys()):
                     try:
                         taurusattrs[modelstate] = Attribute(modelstate)
                     except TaurusException as e:
-                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                        print("Failed to create Taurus Attribute for model %s! %s" % (model, e))
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
-                if model not in taurusattrs.keys():
+                if model not in list(taurusattrs.keys()):
                     try:
                         taurusattrs[model] = Attribute(model)
                     except TaurusException as e:
-                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                        print("Failed to create Taurus Attribute for model %s! %s" % (model, e))
                     except Exception as e:
-                        print "Failed to create Taurus Attribute for model %s!" % (model)
+                        print("Failed to create Taurus Attribute for model %s!" % (model))
             else:
-                print "Invalid Taurus model %s!?" % model
+                print("Invalid Taurus model %s!?" % model)
         self._attributes = attrs
         self._taurus_attributes = taurusattrs
 
@@ -111,7 +111,7 @@ class Registry(QtCore.QThread):
 
         "Update the subscriptions; add new ones, remove old ones"
 
-        listeners = set(k.lower() for k in self.listeners.keys())
+        listeners = set(k.lower() for k in list(self.listeners.keys()))
         new_attrs = set(attributes) - set(listeners)
         old_attrs = set(listeners) - set(attributes)
 
@@ -128,8 +128,8 @@ class Registry(QtCore.QThread):
                 return
             try:
                 self._add_listener(attr)
-            except (TypeError, PyTango.DevFailed) as e:
-                print "Failed to setup listener for", attr, e
+            except (TypeError, tango.DevFailed) as e:
+                print("Failed to setup listener for", attr, e)
 
         self.unsubscribe_callback(old_attrs)
 
@@ -147,9 +147,9 @@ class Registry(QtCore.QThread):
             listener.addListener(self.handle_event)
             return listener
         except (TaurusException, AttributeError) as e:
-            print "Failed to subscribe to model %s! %s" % (model, e)
+            print("Failed to subscribe to model %s! %s" % (model, e))
         except Exception:
-            print "Failed to subscribe to model %s!" % (model)
+            print("Failed to subscribe to model %s!" % (model))
 
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)
@@ -163,7 +163,7 @@ class Registry(QtCore.QThread):
         "return the listener for a given model"
         if model in self.listeners:
             return self.listeners[model]
-        for attr in self.listeners.values():
+        for attr in list(self.listeners.values()):
             if attr.getNormalName().lower() == model.lower():
                 return attr
 

@@ -65,7 +65,7 @@ class JSInterface(QtCore.QObject):
 
     @QtCore.pyqtSlot(str, str, str)
     def run_plugin_command(self, plugin, cmd, args):
-        print "run_plugin_command", plugin, cmd, args
+        print("run_plugin_command", plugin, cmd, args)
         # Note: since we're using signals to loosely connect with the widget
         # it's not possible to get a return value. But we probably don't
         # want that anyway since it might block..?

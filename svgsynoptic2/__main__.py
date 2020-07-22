@@ -36,7 +36,7 @@ def main():
     # the focusChanged signal that does this.
     def onfocus(old, new):
         if new and hasattr(new, "window"):
-            for device, panel in widget._panels.items():
+            for device, panel in list(widget._panels.items()):
                 if panel == new.window():
                     widget.select("model", [device])
     app.focusChanged.connect(onfocus)

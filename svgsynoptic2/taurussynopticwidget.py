@@ -7,8 +7,8 @@ import json
 
 import numpy as np
 from PyQt4 import QtCore
-import PyTango
-from synopticwidget import SynopticWidget
+import tango
+from .synopticwidget import SynopticWidget
 from taurus import Attribute, Manager, Release
 from taurus.core.taurusbasetypes import (
     AttrQuality, TaurusEventType, TaurusSerializationMode)
@@ -23,7 +23,7 @@ from taurus.qt.qtgui.application import TaurusApplication
 try:
     from taurus.core.tango.enums import DevState
 except ImportError:
-    from PyTango import DevState, AttrQuality
+    from tango import DevState, AttrQuality
 
 from .taurusregistry import Registry
 
@@ -46,25 +46,25 @@ class TooltipUpdater(QtCore.QThread):
                                   '<span class="value">%s</span>'
                                   % value.value)
             self.finished.emit(self.model, html)
-        except PyTango.DevFailed as e:
-            print e
+        except tango.DevFailed as e:
+            print(e)
 
 
 def getStateClasses(state=None):
     "Return a state CSS class configuration"
     states = dict((("state-%s" % name), s == state)
-                  for name, s in PyTango.DevState.names.items())
+                  for name, s in list(tango.DevState.names.items()))
     states["state"] = True
     return states
 
 
 # precalculate since this is done quite a lot
 STATE_CLASSES = dict((state, json.dumps(getStateClasses(state)))
-                     for name, state in PyTango.DevState.names.items())
+                     for name, state in list(tango.DevState.names.items()))
 STATE_CLASSES[None] = json.dumps(getStateClasses())
 
 # lookup table to get state name as a string
-STATE_MAP = {code: name for name, code in PyTango.DevState.names.items()}
+STATE_MAP = {code: name for name, code in list(tango.DevState.names.items())}
 
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
@@ -110,13 +110,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             plugins = __import__("plugins.%s" % plugin, globals(),
                                  locals(), [cmd], -1)
         except ImportError as e:
-            print "Could not initialize plugin '%s'!" % plugin
-            print e
+            print("Could not initialize plugin '%s'!" % plugin)
+            print(e)
             return ""
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print "handle_subscriptions ", models
+        print("handle_subscriptions ", models)
         if self.registry:
             self.registry.subscribe(models)
 
@@ -169,10 +169,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # TODO: clean this up!
 
         quality = evt_value.quality
-        quality_string = str(PyTango.AttrQuality.values[quality])
+        quality_string = str(tango.AttrQuality.values[quality])
 
-        if isinstance(value, (DevState, PyTango.DevState,
-                              PyTango._PyTango.DevState)):
+        if isinstance(value, (DevState, tango.DevState,
+                              tango._tango.DevState)):
             classes = STATE_CLASSES[value]
             device, attr = model.rsplit("/", 1)
             state = STATE_MAP[value]
@@ -215,7 +215,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                           "quality": quality_string})))
         else:
             # everything else needs to be displayed as text
-            if quality == PyTango.AttrQuality.ATTR_INVALID:
+            if quality == tango.AttrQuality.ATTR_INVALID:
                 text = "?"  # do something more sophisticated here
             else:
                 # TODO: need more sophisticated logic here; currently
@@ -246,7 +246,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         clicked section.  Override this function if you need something
         else.
         """
-        print "on_click", kind, name
+        print("on_click", kind, name)
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
@@ -269,7 +269,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             if name.lower() in self._panels:
 
                 widget = self._panels[name.lower()]
-                print "Found existing panel for %s:" % name, widget
+                print("Found existing panel for %s:" % name, widget)
                 if not widget.isVisible():
                     widget.show()
                 widget.activateWindow()
@@ -305,10 +305,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         become pretty bogged down."""
         if self.registry:
             with self.registry.lock:
-                print "cleaning up panel for", w.getModel(), "..."
+                print("cleaning up panel for", w.getModel(), "...")
                 self._panels.pop(str(w.getModel()).lower(), None)
                 w.setModel(None)
-                print "done!"
+                print("done!")
 
     # Note: the tooltip stuff is broken and not currently in use.
     # Currently there is only the default tooltip which displays the
@@ -364,14 +364,14 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # Get rid of all opened panels, otherwise the application will
         # not exit cleanly.
         super(TaurusSynopticWidget, self).closeEvent(event)
-        for model, panel in self._panels.items():
-            print "closing panel for", model
+        for model, panel in list(self._panels.items()):
+            print("closing panel for", model)
             panel.close()
 
 
 if __name__ == '__main__':
     import sys
-    print sys.argv[1]
+    print(sys.argv[1])
     # qapp = Qt.QApplication([])
     app = TaurusApplication()
     sw = TaurusSynopticWidget()
