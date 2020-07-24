@@ -9,6 +9,7 @@ import os
 import json
 
 from PyQt5 import Qt, QtCore, QtGui
+from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineView
 
 from .jsinterface import JSInterface
@@ -79,26 +80,25 @@ class SynopticWidget(QtGui.QWidget):
         print(text)
         self._modelNames = text
 
-
     def _create_view(self, html=None, section=None):
         """
         Create the webview that will display the synoptic itself
         """
         view = QWebEngineView(self)
-
+        channel = QWebChannel(self)
         # This is supposedly an optimisation. Disable if there are
         # graphical artifacts or something.
         view.settings().TiledBackingStoreEnabled = True
-        view.setRenderHint(QtGui.QPainter.TextAntialiasing, False)
 
         page = LoggingWebPage()
         view.setPage(page)
         view.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
 
         # setup the JS interface
-        frame = view.page().mainFrame()
+        frame = view.page()
         self.js = JSInterface(frame)
         self.js.subscription.connect(self.subscribe)
+        frame.setWebChannel(channel)
 
         # mouse interaction signals
         self.clicked = self.js.leftclicked
@@ -109,10 +109,10 @@ class SynopticWidget(QtGui.QWidget):
         self.hovered.connect(self._on_hover)
 
         # Inject JSInterface into the JS global namespace as "Backend"
-        def addBackend():
-            frame.addToJavaScriptWindowObject('QtBackend', self.js)
-        view.connect(frame, QtCore.SIGNAL("javaScriptWindowObjectCleared()"), addBackend)
 
+        # def addBackend():
+        #     frame.addToJavaScriptWindowObject('QtBackend', self.js)
+        # frame.javaScriptWindowObjectCleared.connect(addBackend)
         # load the page
         # need to set the "base URL" for the webview to find the
         # resources (js, css).

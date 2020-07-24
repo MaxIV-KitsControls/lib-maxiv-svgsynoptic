@@ -32,7 +32,7 @@ class JSInterface(QtCore.QObject):
 
     def _evaluate_js(self, js):
         with self.lock:
-            self.frame.evaluateJavaScript(js)
+            self.frame.runJavaScript(js)
 
     @QtCore.pyqtSlot(str, str)
     def left_click(self, section, models):
