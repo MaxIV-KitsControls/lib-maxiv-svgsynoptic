@@ -1,13 +1,16 @@
-"""A simple commandline way to test a synoptic file"""
+"""
+A simple commandline way to test a synoptic file
+"""
 
 import json
-from optparse import OptionParser
 import os
-from string import Template
 import sys
+from optparse import OptionParser
+from string import Template
 from tempfile import NamedTemporaryFile
 
 from taurus.qt.qtgui.application import TaurusApplication
+
 from svgsynoptic2.taurussynopticwidget import TaurusSynopticWidget
 
 

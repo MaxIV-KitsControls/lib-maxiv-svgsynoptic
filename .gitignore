@@ -45,6 +45,8 @@ docs/_build/
 target/
 # 2to3
 *.bak
+# IDE
+.idea
 
 # Emacs
 *~

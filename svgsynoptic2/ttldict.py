@@ -9,9 +9,9 @@ Tricks / features:
 __all__ = ['TTLDict']
 __version__ = '0.0.4'
 
+import time
 from collections import MutableMapping
 from threading import RLock
-import time
 
 
 class TTLDict(MutableMapping):
@@ -29,7 +29,9 @@ class TTLDict(MutableMapping):
         return '<TTLDict@%#08x; ttl=%r, v=%r;>' % (id(self), self._default_ttl, self._values)
 
     def set_ttl(self, key, ttl, now=None):
-        """ Set TTL for the given key """
+        """
+        Set TTL for the given key
+        """
         if now is None:
             now = time.time()
         with self._lock:
@@ -37,7 +39,9 @@ class TTLDict(MutableMapping):
             self._values[key] = (now + ttl, value)
 
     def get_ttl(self, key, now=None):
-        """ Return remaining TTL for a key """
+        """
+        Return remaining TTL for a key
+        """
         if now is None:
             now = time.time()
         with self._lock:
@@ -45,13 +49,17 @@ class TTLDict(MutableMapping):
             return expire - now
 
     def expire_at(self, key, timestamp):
-        """ Set the key expire timestamp """
+        """
+        Set the key expire timestamp
+        """
         with self._lock:
             _expire, value = self._values[key]
             self._values[key] = (timestamp, value)
 
     def is_expired(self, key, now=None, remove=False):
-        """ Check if key has expired """
+        """
+        Check if key has expired
+        """
         with self._lock:
             if now is None:
                 now = time.time()

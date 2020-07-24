@@ -1,25 +1,17 @@
-from threading import Lock, Event
+from threading import Event, Lock
 from time import sleep
 
-from PyQt4 import QtCore
+import tango
+from PyQt5 import QtCore
 from taurus import Attribute
 from taurus.core import TaurusException
-try:
-    from taurus.core.tango.tangovalidator import (TangoAttributeNameValidator,
-                                                  TangoDeviceNameValidator)
-    from taurus.core.evaluation.evalvalidator import (
-        EvaluationAttributeNameValidator)
-except ImportError:
-    from taurus.core.taurusvalidator import (
-        AttributeNameValidator as TangoAttributeNameValidator,
-        DeviceNameValidator as TangoDeviceNameValidator)
-    from taurus.core.evaluation import EvaluationAttributeNameValidator
-import tango
+from taurus.core.evaluation.evalvalidator import EvaluationAttributeNameValidator
+from taurus.core.tango.tangovalidator import (TangoAttributeNameValidator,
+                                              TangoDeviceNameValidator)
 
 # We can't use pytango's CaselessDict since it does not keep the original
 # case of the keys :(
 from .caseless import CaselessDictionary as CaselessDict
-
 from .ttldict import TTLDict
 
 
@@ -53,7 +45,9 @@ class Registry(QtCore.QThread):
         self.stopped = Event()
 
     def run(self):
-        "A simple loop checking for changes to the attribute list"
+        """
+        A simple loop checking for changes to the attribute list
+        """
         # "batching" the updates should be more efficient than
         # reacting immediately, especially when listeners can come and
         # go quite frequently.
@@ -65,7 +59,9 @@ class Registry(QtCore.QThread):
                     self._update(attributes)
 
     def subscribe(self, models=[]):
-        """Set the currently subscribed list of models."""
+        """
+        Set the currently subscribed list of models.
+        """
         attrs = CaselessDict()
         taurusattrs = self._taurus_attributes
         for model in models:
@@ -108,8 +104,9 @@ class Registry(QtCore.QThread):
             self.event_callback(model, evt_src, *args)
 
     def _update(self, attributes=CaselessDict()):
-
-        "Update the subscriptions; add new ones, remove old ones"
+        """
+        Update the subscriptions; add new ones, remove old ones
+        """
 
         listeners = set(k.lower() for k in list(self.listeners.keys()))
         new_attrs = set(attributes) - set(listeners)
@@ -160,7 +157,9 @@ class Registry(QtCore.QThread):
         listener.removeListener(self.handle_event)
 
     def get_listener(self, model):
-        "return the listener for a given model"
+        """
+        return the listener for a given model
+        """
         if model in self.listeners:
             return self.listeners[model]
         for attr in list(self.listeners.values()):

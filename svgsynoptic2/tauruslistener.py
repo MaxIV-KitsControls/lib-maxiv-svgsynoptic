@@ -1,7 +1,7 @@
 import sys
 
 from taurus import Attribute, Manager
-from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
+from taurus.core.taurusbasetypes import TaurusEventType, DataFormat
 import tango
 
 Manager().changeDefaultPollingPeriod(1000)
@@ -16,11 +16,13 @@ def error_str(err):
 
 # Based on code from the taurus-web project
 class TaurusAttribute(object):
-    """This object is a listener for the taurus attribute value.
+    """
+    This object is a listener for the taurus attribute value.
     When a attribute changes it sends an event. The event
     triggers a call to *eventReceived*. *eventReceived* will transform
     the change event into a JSON encoded string and sends this
-    string through the web socket to the client"""
+    string through the web socket to the client
+    """
 
     def __init__(self, name, callback):
         print(self.__class__.__name__, name)
@@ -33,8 +35,10 @@ class TaurusAttribute(object):
         self.attribute.addListener(self)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        """Transforms the event into a JSON encoded string and sends this
-        string into the web socket"""
+        """
+        Transforms the event into a JSON encoded string and sends this
+        string into the web socket
+        """
 
         modelObj = evt_src
         data = {}

@@ -5,16 +5,16 @@ in a stand alone application.
 
 import os
 
-#from taurus.external.qt import Qt
 from taurus.qt.qtgui.application import TaurusApplication
-
 
 from svgsynoptic2.synopticwidget import SynopticWidget
 
 
 class ExampleSynopticWidget(SynopticWidget):
 
-    "A custom subclass of the synoptic widget."
+    """
+    A custom subclass of the synoptic widget.
+    """
 
     def on_click(self, kind, name):
         # Overriding the click event handler to print information

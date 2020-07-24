@@ -13,7 +13,9 @@ from svgsynoptic2.taurussynopticwidget import TaurusSynopticWidget
 
 class ExampleSynopticWidget(TaurusSynopticWidget):
 
-    "A custom subclass of the synoptic widget."
+    """
+    A custom subclass of the synoptic widget.
+    """
 
     def get_device_panel(self, device):
         return TaurusDevicePanel

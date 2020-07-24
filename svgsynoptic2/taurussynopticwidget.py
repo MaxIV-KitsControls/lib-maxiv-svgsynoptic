@@ -2,30 +2,25 @@
 A Taurus based TANGO backend for the SVG synoptic.
 """
 
-from inspect import isclass
 import json
+from inspect import isclass
 
 import numpy as np
-from PyQt4 import QtCore
 import tango
-from .synopticwidget import SynopticWidget
+from PyQt5 import QtCore
 from taurus import Attribute, Manager, Release
+from taurus.core.tango.enums import DevState
 from taurus.core.taurusbasetypes import (
-    AttrQuality, TaurusEventType, TaurusSerializationMode)
+    TaurusEventType, TaurusSerializationMode)
 from taurus.external.qt import Qt
-TAURUS_VERSION = Release.version_info[0]
-try:
-    from taurus.qt.qtgui.container import TaurusWidget
-except ImportError:
-    from taurus.qt.qtgui.panel import TaurusWidget
-from taurus.qt.qtgui.panel import TaurusDevicePanel
 from taurus.qt.qtgui.application import TaurusApplication
-try:
-    from taurus.core.tango.enums import DevState
-except ImportError:
-    from tango import DevState, AttrQuality
+from taurus.qt.qtgui.container import TaurusWidget
+from taurus.qt.qtgui.panel import TaurusDevicePanel
 
+from .synopticwidget import SynopticWidget
 from .taurusregistry import Registry
+
+TAURUS_VERSION = Release.version_info[0]
 
 
 class TooltipUpdater(QtCore.QThread):
@@ -51,7 +46,9 @@ class TooltipUpdater(QtCore.QThread):
 
 
 def getStateClasses(state=None):
-    "Return a state CSS class configuration"
+    """
+    Return a state CSS class configuration
+    """
     states = dict((("state-%s" % name), s == state)
                   for name, s in list(tango.DevState.names.items()))
     states["state"] = True
@@ -69,8 +66,10 @@ STATE_MAP = {code: name for name, code in list(tango.DevState.names.items())}
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
-    """A SynopticWidget that connects to TANGO in order to
-    get updates for models (attributes)."""
+    """
+    A SynopticWidget that connects to TANGO in order to
+    get updates for models (attributes).
+    """
 
     tooltip_trigger = QtCore.pyqtSignal(str)
 
@@ -99,7 +98,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return self._url
 
     def closeEvent(self, event):
-        "Clean things up when the widget is closed"
+        """
+        Clean things up when the widget is closed
+        """
         self.registry.clear()
         self.registry.stop()
         self.registry.wait()
@@ -121,9 +122,11 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.registry.subscribe(models)
 
     def unsubscribe_listener(self, unsubscribed):
-        """Tell the synoptic about unsubscribed models. This is
+        """
+        Tell the synoptic about unsubscribed models. This is
         needed because it's all asunchronous so it cannot be assumed
-        that a model is really unsubscribed until it is."""
+        that a model is really unsubscribed until it is.
+        """
         classes = STATE_CLASSES[None]
         for model in unsubscribed:
             self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
@@ -152,7 +155,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return value
 
     def attribute_listener(self, model, evt_src, evt_type, evt_value):
-        "Handle events"
+        """
+        Handle events
+        """
         if evt_type == TaurusEventType.Error:
             return  # handle errors somehow
         if evt_type == TaurusEventType.Config:
@@ -224,7 +229,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 try:
                     if TAURUS_VERSION == 4:
                         fmt = evt_src.getFormat()
-                        value = fmt%value    # taurus4 issue: values without format
+                        value = fmt % value    # taurus4 issue: values without format
                     text = evt_src.displayValue(value)
                 except AttributeError:
                     text = str(value)
@@ -242,7 +247,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                                  "quality": quality_string})))
 
     def on_click(self, kind, name):
-        """The default behavior is to mark a clicked device and to zoom to a
+        """
+        The default behavior is to mark a clicked device and to zoom to a
         clicked section.  Override this function if you need something
         else.
         """
@@ -256,7 +262,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             self.unselect_all()
 
     def get_device_panel(self, device):
-        """Override to change which panel is opened for a given device
+        """
+        Override to change which panel is opened for a given device
         name. Return a widget class, a widget, or None if you're
         handling the panel yourself. TaurusDevicePanel is a reasonable
         fallback.
@@ -264,7 +271,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return TaurusDevicePanel
 
     def on_rightclick(self, kind, name):
-        "The default behavior for right clicking a device is to open a panel."
+        """
+        The default behavior for right clicking a device is to open a panel.
+        """
         if kind == "model" and self.registry.device_validator.isValid(name):
             if name.lower() in self._panels:
 
@@ -275,7 +284,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 widget.activateWindow()
                 widget.raise_()
                 return
-
 
             # check if we recognise the class of the device
             widget = self.get_device_panel(name)
@@ -300,9 +308,11 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             widget.show()
 
     def _cleanup_panel(self, w):
-        """In the long run it seems like a good idea to try and clean up
+        """
+        In the long run it seems like a good idea to try and clean up
         closed panels. In particular, the Taurus polling thread can
-        become pretty bogged down."""
+        become pretty bogged down.
+        """
         if self.registry:
             with self.registry.lock:
                 print("cleaning up panel for", w.getModel(), "...")
@@ -342,8 +352,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 # hack to keep newlines
                 value = value.replace("\n", "<br>")
             self._tooltip_data.setdefault(device, {})[attr] = value
-            #dev = evt_src.getParentObj()
-            #info = dev.getHWObj().info()
+            # dev = evt_src.getParentObj()
+            # info = dev.getHWObj().info()
             # self._tooltip_data[device]["Class"] = info.dev_class
             self.tooltip_trigger.emit(device)
         else:

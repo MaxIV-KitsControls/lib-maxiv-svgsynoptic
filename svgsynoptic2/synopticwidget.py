@@ -8,13 +8,13 @@ import logging
 import os
 import json
 
-from PyQt4 import Qt, QtCore, QtGui
-from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings, QWebInspector
+from PyQt5 import Qt, QtCore, QtGui
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineView
 
 from .jsinterface import JSInterface
 
 
-class LoggingWebPage(QWebPage):
+class LoggingWebPage(QWebEnginePage):
     """
     Use a Python logger to print javascript console messages.
     Very useful for debugging javascript...
@@ -64,13 +64,12 @@ class SynopticWidget(QtGui.QWidget):
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.hbox.addWidget(self.splitter)
         view = self._create_view(url, section)
-        self._setup_inspector(view)
         self.splitter.addWidget(view)
         print("set_url", url)
 
     def setConfig(self, configFile):
         abspath = os.path.dirname(os.path.abspath(configFile))
-        #build a javascript defining the models
+        # build a javascript defining the models
         text = "var modelNames ={"
         with open(configFile, 'r') as read_file:
             data = json.load(read_file)
@@ -82,8 +81,10 @@ class SynopticWidget(QtGui.QWidget):
 
 
     def _create_view(self, html=None, section=None):
-        "Create the webview that will display the synoptic itself"
-        view = QWebView(self)
+        """
+        Create the webview that will display the synoptic itself
+        """
+        view = QWebEngineView(self)
 
         # This is supposedly an optimisation. Disable if there are
         # graphical artifacts or something.
@@ -134,28 +135,6 @@ class SynopticWidget(QtGui.QWidget):
 
         return view
 
-    def _setup_inspector(self, view):
-
-        """Create a WebInspector widget connected to the WebView. This allows inspecting
-        the DOM, debugging javascript, logging, etc. Can be toggled using F12."""
-
-        self._inspector = None
-        page = view.page()
-
-        def toggle_inspector():
-            if self._inspector:
-                self._inspector.setVisible(not self._inspector.isVisible())
-            else:
-                # create the inspector "on demand"
-                page.settings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
-                self._inspector = QWebInspector(self)
-                self._inspector.setPage(page)
-                self.splitter.addWidget(self._inspector)
-
-        shortcut = QtGui.QShortcut(self)
-        shortcut.setKey(QtCore.Qt.Key_F12)
-        shortcut.activated.connect(toggle_inspector)
-
     def _handle_subscriptions(self, models):
         # we get the subscribed models as a comma separated list from Qt,
         # let's deliver something neater.
@@ -177,7 +156,9 @@ class SynopticWidget(QtGui.QWidget):
         self.on_click(str(kind), str(name))
 
     def on_click(self, kind, name):
-        """Default behavior on click. Override to change!"""
+        """
+        Default behavior on click. Override to change!
+        """
         if kind == "section":
             self.zoom_to(kind, name)
         elif kind == "model":
@@ -188,7 +169,9 @@ class SynopticWidget(QtGui.QWidget):
         self.on_rightclick(str(kind), str(name))
 
     def on_rightclick(self, kind, name):
-        "Placeholder; override me!"
+        """
+        Placeholder; override me!
+        """
         pass
 
     def _on_hover(self, section, models):
@@ -197,7 +180,9 @@ class SynopticWidget(QtGui.QWidget):
         self.on_hover(section, splitmodels)
 
     def on_hover(self, section, models):
-        "Show a basic 'tooltip' when the mouse pointer is over an item."
+        """
+        Show a basic 'tooltip' when the mouse pointer is over an item.
+        """
         # Override this to add more interesting behavior
         if section:
             self.js.evaluate("synoptic.showTooltip();")
@@ -211,11 +196,14 @@ class SynopticWidget(QtGui.QWidget):
     # # # 'Public' API # # #
 
     def zoom_to(self, kind, name):
-        "Move the view so that the given object is visible"
+        """
+        Move the view so that the given object is visible
+        """
         self.js.evaluate("synoptic.zoomTo(%r, %r)" % (str(kind), str(name)))
 
     def select(self, kind, names, replace=True):
-        """Set a list of items as 'selected'. By default unselects all
+        """
+        Set a list of items as 'selected'. By default unselects all
         previously selected things first.
         """
         print("select", kind, names)

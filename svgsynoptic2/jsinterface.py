@@ -1,6 +1,6 @@
 from threading import Lock
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 
 class JSInterface(QtCore.QObject):
@@ -52,7 +52,9 @@ class JSInterface(QtCore.QObject):
 
     @QtCore.pyqtSlot(str)
     def subscribe(self, devices):
-        "Update the list of attributes to pay attention to"
+        """
+        Update the list of attributes to pay attention to
+        """
         self.subscription.emit(devices)
 
     @QtCore.pyqtSlot(str)

@@ -77,7 +77,9 @@ class CaselessDictionary(MutableMapping):
 
 class CaselessString(object):
 
-    """A mixin to make a string subclass case-insensitive in dict lookups."""
+    """
+    A mixin to make a string subclass case-insensitive in dict lookups.
+    """
 
     def __hash__(self):
         return hash(self.lower())
