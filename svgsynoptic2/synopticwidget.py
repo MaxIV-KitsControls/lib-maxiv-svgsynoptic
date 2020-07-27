@@ -76,7 +76,7 @@ class SynopticWidget(QtGui.QWidget):
             data = json.load(read_file)
             for key in list(data.keys()):
                 text += key + " : \"" + data[key] + "\","
-        text+="};"
+        text += "};"
         print(text)
         self._modelNames = text
 
@@ -91,14 +91,14 @@ class SynopticWidget(QtGui.QWidget):
         view.settings().TiledBackingStoreEnabled = True
 
         page = LoggingWebPage()
-        view.setPage(page)
-        view.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
 
         # setup the JS interface
-        frame = view.page()
-        self.js = JSInterface(frame)
+        self.js = JSInterface(page)
         self.js.subscription.connect(self.subscribe)
-        frame.setWebChannel(channel)
+        channel.registerObject('QtBackend', self.js)
+        page.setWebChannel(channel)
+        view.setPage(page)
+        view.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
 
         # mouse interaction signals
         self.clicked = self.js.leftclicked

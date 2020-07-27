@@ -17,7 +17,7 @@ window.addEventListener("load", function () {
         console.log("synoptic " + synoptic)
 
         // if the user supplies a backend, we'll use it
-        backend = config.backend || new Backend();
+        backend = config.backend  || new Backend();
         console.log("backend", backend);
         
         // Mouse interaction
