@@ -103,17 +103,12 @@ Synoptic = (function () {
         }
 
         function getDataset (node) {
-            // this differs between FF and webkit...
-            if (node instanceof SVGElementInstance) {
-                return node.correspondingUseElement.dataset;
-            } else {
-                return node.dataset;
-            }
+            return node.dataset;
         }
-        
+
         // TODO: refactor, this probably belongs in the View...
         function setupMouse () {
-            
+
             // Note: it would be nicer to put these callbacks on the
             // SVG element instead of on each and every clickable
             // element. But for some reason this does not work in
@@ -177,7 +172,7 @@ Synoptic = (function () {
                                  util.setClass(node, cl, classes[cl]);
                              });
                          });
-        }        
+        }
 
         // update the dataset attribute on selected nodes
         function setData(type, name, data) {
@@ -186,7 +181,7 @@ Synoptic = (function () {
                             _.extend(node.dataset, data);
                         });
         }
-        
+
         /********** Visibility **********/
 
         var _bboxes = {device: {}, attribute: {}, section: {}};
@@ -232,7 +227,7 @@ Synoptic = (function () {
         var getBBox = _.memoize(_getBBox, function (a, b) {
             return (a + ":" + b).toLowerCase();
         });
-        
+
         // return a selection containing the devices in the currently
         // shown layers and zoom levels.
         function selectShownThings() {
@@ -242,14 +237,14 @@ Synoptic = (function () {
                     "g.layer:not(.hidden) > g.zoom:not(.hidden) .model"
             );
         }
-        
+
         // Hmm... this does not quite work
         function selectHiddenThings() {
             return svg.selectAll(
                 "g.layer.hidden .model, g.zoom.hidden > .model"
             );
         }
-        
+
         function fireSubscribeCallbacks(visible) {
             listeners.subscribe.forEach(
                 function (cb) {
@@ -260,7 +255,7 @@ Synoptic = (function () {
                     }
                 });
         }
-                
+
         // Find all models that can be seen and activate them
         // For this calculation we use bounding boxes, that is the smallest
         // rectangle (aligned with the x and y axes) that encompasses the
@@ -268,7 +263,7 @@ Synoptic = (function () {
         // false positives (e.g. activating models that are not actually
         // visible), never false negatives (which would actually be a problem).
         function updateVisibility (vbox) {
-            
+
             vbox = vbox || view.getViewBox();
 
             var sel = selectShownThings(), visibleNodes = [];
@@ -295,12 +290,12 @@ Synoptic = (function () {
         }
 
         function zoomTo (type, name) {
-            console.log("zoomTo " + type + " " + name);            
+            // console.log("zoomTo " + type + " " + name);
             var sel = selectNodes(type, name);
             var node = sel[0];
             // here we want the coordinates in SVG space
             var bbox = util.transformedBoundingBox(node);
-            console.log("bbox " + bbox.left + " " + bbox.top + " " +bbox.height + " " + bbox.width);
+            // console.log("bbox " + bbox.left + " " + bbox.top + " " +bbox.height + " " + bbox.width);
             view.moveToBBox(bbox, 200, 0.25);
         };
 

@@ -43,6 +43,7 @@ var util = {};
             svg = el.ownerSVGElement,
             m   = el.getScreenCTM().inverse().multiply(el.parentNode.getScreenCTM());
 
+        console.log("utils,js 43" + bb + " " + svg + " " + m);
         // Create an array of all four points for the original bounding box
         var pts = [
             svg.createSVGPoint(), svg.createSVGPoint(),

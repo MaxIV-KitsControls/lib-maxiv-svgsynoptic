@@ -26,9 +26,9 @@ class LoggingWebPage(QWebEnginePage):
             logger = logging
         self.logger = logger
 
-    def javaScriptConsoleMessage(self, msg, lineNumber, sourceID):
+    def javaScriptConsoleMessage(self, sourceID, msg, lineNumber, filename):
         # don't use the logger for now; too verbose :)
-        print("JsConsole(%s:%d):\n\t%s" % (sourceID, lineNumber, msg))
+        print(f"JsConsole({sourceID}:{lineNumber}):\n\t{msg}\n\t{filename}")
 
 
 class SynopticWidget(QtGui.QWidget):
@@ -66,7 +66,7 @@ class SynopticWidget(QtGui.QWidget):
         self.hbox.addWidget(self.splitter)
         view = self._create_view(url, section)
         self.splitter.addWidget(view)
-        print("set_url", url)
+        # print("set_url", url)
 
     def setConfig(self, configFile):
         abspath = os.path.dirname(os.path.abspath(configFile))
@@ -77,7 +77,7 @@ class SynopticWidget(QtGui.QWidget):
             for key in list(data.keys()):
                 text += key + " : \"" + data[key] + "\","
         text += "};"
-        print(text)
+        # print(text)
         self._modelNames = text
 
     def _create_view(self, html=None, section=None):
@@ -91,14 +91,15 @@ class SynopticWidget(QtGui.QWidget):
         view.settings().TiledBackingStoreEnabled = True
 
         page = LoggingWebPage()
-
-        # setup the JS interface
-        self.js = JSInterface(page)
-        self.js.subscription.connect(self.subscribe)
-        channel.registerObject('QtBackend', self.js)
-        page.setWebChannel(channel)
         view.setPage(page)
         view.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
+
+        # setup the JS interface
+        frame = view.page()
+        self.js = JSInterface(frame)
+        self.js.subscription.connect(self.subscribe)
+        channel.registerObject('QtBackend', self.js)
+        frame.setWebChannel(channel)
 
         # mouse interaction signals
         self.clicked = self.js.leftclicked
@@ -122,15 +123,15 @@ class SynopticWidget(QtGui.QWidget):
         # some ugly magic to get the path to the SVG file right. It
         # needs to be absolute because local paths go to the base URL.
         abspath = os.path.dirname(os.path.abspath(html))
-        print(("absolute path "+abspath + '/' + html))
+        # print(("absolute path " + abspath + '/' + html))
 
         with open(html) as f:
             text = f.read().replace("${path}", abspath)  # TODO: use template
             if self._modelNames is not None:
                 if "/*configplaceholder*/" in text:
-                    print("placeholder found")
-                    texta,textb = text.split("/*configplaceholder*/", 1)
-                    text =texta + self._modelNames + textb
+                    # print("placeholder found")
+                    texta, textb = text.split("/*configplaceholder*/", 1)
+                    text = texta + self._modelNames + textb
             view.setHtml(text, base_url)
 
         return view
@@ -206,7 +207,7 @@ class SynopticWidget(QtGui.QWidget):
         Set a list of items as 'selected'. By default unselects all
         previously selected things first.
         """
-        print("select", kind, names)
+        # print("select", kind, names)
         if replace:
             self.js.evaluate("synoptic.unselectAll()")
         if names:
