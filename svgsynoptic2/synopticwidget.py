@@ -26,9 +26,9 @@ class LoggingWebPage(QWebEnginePage):
             logger = logging
         self.logger = logger
 
-    def javaScriptConsoleMessage(self, sourceID, msg, lineNumber, filename):
+    def javaScriptConsoleMessage(self, source_id, msg, line_number, filename):
         # don't use the logger for now; too verbose :)
-        print(f"JsConsole({sourceID}:{lineNumber}):\n\t{msg}\n\t{filename}")
+        print(f"JsConsole({source_id}:{line_number}):\n\t{msg}\n\t{filename}")
 
 
 class SynopticWidget(QtWidgets .QWidget):
@@ -68,11 +68,11 @@ class SynopticWidget(QtWidgets .QWidget):
         self.splitter.addWidget(view)
         # print("set_url", url)
 
-    def setConfig(self, configFile):
-        abspath = os.path.dirname(os.path.abspath(configFile))
+    def set_config(self, config_file):
+        abspath = os.path.dirname(os.path.abspath(config_file))
         # build a javascript defining the models
         text = "var modelNames ={"
-        with open(configFile, 'r') as read_file:
+        with open(config_file, 'r') as read_file:
             data = json.load(read_file)
             for key in list(data.keys()):
                 text += key + " : \"" + data[key] + "\","
@@ -98,6 +98,8 @@ class SynopticWidget(QtWidgets .QWidget):
         frame = view.page()
         self.js = JSInterface(frame)
         self.js.subscription.connect(self.subscribe)
+
+        # Inject JSInterface into the JS global namespace as "Backend"
         channel.registerObject('QtBackend', self.js)
         frame.setWebChannel(channel)
 
@@ -109,11 +111,6 @@ class SynopticWidget(QtWidgets .QWidget):
         self.rightClicked.connect(self._on_rightclick)
         self.hovered.connect(self._on_hover)
 
-        # Inject JSInterface into the JS global namespace as "Backend"
-
-        # def addBackend():
-        #     frame.addToJavaScriptWindowObject('QtBackend', self.js)
-        # frame.javaScriptWindowObjectCleared.connect(addBackend)
         # load the page
         # need to set the "base URL" for the webview to find the
         # resources (js, css).
