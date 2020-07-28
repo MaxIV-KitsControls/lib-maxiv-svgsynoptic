@@ -75,7 +75,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def __init__(self, parent=None, **kwargs):
         super(TaurusSynopticWidget, self).__init__(parent=parent)
-        print('init TaurusSynopticWidget')
+        # print('init TaurusSynopticWidget')
         Manager().setSerializationMode(TaurusSerializationMode.Serial)
         self.tooltip_trigger.connect(self._update_device_tooltip)
         self._panels = {}
@@ -252,7 +252,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         clicked section.  Override this function if you need something
         else.
         """
-        print("on_click", kind, name)
+        # print("on_click", kind, name)
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
@@ -315,10 +315,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         """
         if self.registry:
             with self.registry.lock:
-                print("cleaning up panel for", w.getModel(), "...")
+                # print("cleaning up panel for", w.getModel(), "...")
                 self._panels.pop(str(w.getModel()).lower(), None)
                 w.setModel(None)
-                print("done!")
+                # print("done!")
 
     # Note: the tooltip stuff is broken and not currently in use.
     # Currently there is only the default tooltip which displays the

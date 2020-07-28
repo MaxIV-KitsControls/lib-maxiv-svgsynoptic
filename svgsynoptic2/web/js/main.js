@@ -11,19 +11,19 @@ window.addEventListener("load", function () {
         // var container = document.getElementById("view");
         config = config || {};
         
-        console.log("config "  + JSON.stringify(config));
+        // console.log("config "  + JSON.stringify(config));
         synoptic = new Synoptic(container, svg, config);
 
-        console.log("synoptic " + synoptic)
+        // console.log("synoptic " + synoptic)
 
         // if the user supplies a backend, we'll use it
         backend = config.backend  || new Backend();
-        console.log("backend", backend);
+        // console.log("backend", backend);
         
         // Mouse interaction
         synoptic.addEventCallback(
             "click", function (data) {
-                console.log("click ", data);
+                // console.log("click ", data);
                 if (data && data.hasOwnProperty("section"))
                     backend.leftClick("section", data.section);
                 if (data && data.hasOwnProperty("model"))
@@ -66,9 +66,9 @@ window.addEventListener("load", function () {
 
     // Load the actual SVG into the page
     function load (svg, element, config) {
-        //console.log("models " + modelNames);
-        console.log("load " + svg);
-        console.log(location.pathname);
+        // console.log("models " + modelNames);
+        // console.log("load " + svg);
+        // console.log(location.pathname);
         element = element || window;
         d3.xml(svg, "image/svg+xml", function(xml) {
             var svg = d3.select(document.importNode(xml.documentElement, true));
@@ -85,7 +85,7 @@ window.addEventListener("load", function () {
     window.loadSVG = load;
 
     function loadString (svgString) {
-        console.log("loadString")
+        // console.log("loadString")
         var tmp = document.createElement("div");
         tmp.innerHTML = svgString;
         d3.ns.prefix.inkscape = "http://www.inkscape.org/namespaces/inkscape";
@@ -142,7 +142,7 @@ window.addEventListener("load", function () {
                     match = /zoom(\d)/.exec(name);
                 if (match) {
                     var level = parseInt(match[1]);
-                    console.log("zoom level", name, level);
+                    // console.log("zoom level", name, level);
                     node.classed("zoom", true);
                     node.classed("level"+level, true);
                     node.style("display", null);
@@ -192,7 +192,7 @@ window.addEventListener("load", function () {
             //look up name without surrounding $..$
             var newmodel =lookupName(match[0].substring(1, match[0].length-1));
             newname=newname.replace(match[0],newmodel);
-            console.log("Look up models: "+match[0]+ " replaced by "+newmodel);
+            console.log("Look up models: " + match[0] + " replaced by " + newmodel);
             match = myregex.exec(name);
         }
         console.log("New model: "+newname);

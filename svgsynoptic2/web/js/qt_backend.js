@@ -18,11 +18,11 @@ function Backend () {
         }
     }
     this.leftClick = function (kind, model) {
-        console.log("left_click", kind, model);
+        // console.log("left_click", kind, model);
         QtBackend.left_click(kind, model);
     }
     this.rightClick = function (kind, model) {
-        console.log("right_click", kind, model);
+        // console.log("right_click", kind, model);
         QtBackend.right_click(kind, model);
     }
 }

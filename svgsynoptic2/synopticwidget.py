@@ -31,7 +31,7 @@ class LoggingWebPage(QWebEnginePage):
         print(f"JsConsole({source_id}:{line_number}):\n\t{msg}\n\t{filename}")
 
 
-class SynopticWidget(QtWidgets .QWidget):
+class SynopticWidget(QtWidgets.QWidget):
 
     """
     A Qt widget displaying a SVG synoptic in a webview.
