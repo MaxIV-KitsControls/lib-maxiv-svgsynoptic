@@ -8,7 +8,7 @@ import logging
 import os
 import json
 
-from PyQt5 import Qt, QtCore, QtGui
+from PyQt5 import Qt, QtCore, QtWidgets
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineView
 
@@ -31,7 +31,7 @@ class LoggingWebPage(QWebEnginePage):
         print(f"JsConsole({sourceID}:{lineNumber}):\n\t{msg}\n\t{filename}")
 
 
-class SynopticWidget(QtGui.QWidget):
+class SynopticWidget(QtWidgets .QWidget):
 
     """
     A Qt widget displaying a SVG synoptic in a webview.
@@ -51,7 +51,7 @@ class SynopticWidget(QtGui.QWidget):
         self._modelNames = None
 
     def _setup_ui(self, url=None, section=None):
-        self.hbox = hbox = QtGui.QHBoxLayout(self)
+        self.hbox = hbox = QtWidgets.QHBoxLayout(self)
         self.hbox.setContentsMargins(0, 0, 0, 0)
         self.hbox.layout().setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.hbox)
@@ -61,7 +61,7 @@ class SynopticWidget(QtGui.QWidget):
     def set_url(self, url, section=None):
         # TODO: probably breaks things if the url is already set
         self._url = url
-        self.splitter = QtGui.QSplitter(self)
+        self.splitter = QtWidgets.QSplitter(self)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.hbox.addWidget(self.splitter)
         view = self._create_view(url, section)
