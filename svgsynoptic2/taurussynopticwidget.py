@@ -162,7 +162,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             return  # handle errors somehow
         if evt_type == TaurusEventType.Config:
             return  # need to do something here too
-        value = evt_value.value
+        value = evt_value.rvalue
         # check for the presence of a "fragment" ending (e.g. ...#[3])
         if self.registry and self.registry.eval_validator.isValid(model):
             try:
@@ -228,13 +228,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 # we should even support those...
                 try:
                     if TAURUS_VERSION == 4:
-                        fmt = evt_src.getFormat()
+                        fmt = "%" + evt_src.format_spec
                         value = fmt % value    # taurus4 issue: values without format
-                    text = evt_src.displayValue(value)
+                    text = value
                 except AttributeError:
                     text = str(value)
             try:
-                unit = evt_src.getConfig().unit
+                unit = evt_src.rvalue.units
             except AttributeError:
                 unit = None
 
@@ -315,10 +315,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         """
         if self.registry:
             with self.registry.lock:
-                # print("cleaning up panel for", w.getModel(), "...")
+                print("cleaning up panel for", w.getModel(), "...")
                 self._panels.pop(str(w.getModel()).lower(), None)
                 w.setModel(None)
-                # print("done!")
+                print("done!")
 
     # Note: the tooltip stuff is broken and not currently in use.
     # Currently there is only the default tooltip which displays the
