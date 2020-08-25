@@ -68,7 +68,7 @@ class SynopticWidget(QtWidgets.QWidget):
         self.splitter.addWidget(view)
         # print("set_url", url)
 
-    def set_config(self, config_file):
+    def setConfig(self, config_file):
         abspath = os.path.dirname(os.path.abspath(config_file))
         # build a javascript defining the models
         text = "var modelNames ={"
@@ -98,8 +98,6 @@ class SynopticWidget(QtWidgets.QWidget):
         frame = view.page()
         self.js = JSInterface(frame)
         self.js.subscription.connect(self.subscribe)
-
-        # Inject JSInterface into the JS global namespace as "Backend"
         channel.registerObject('QtBackend', self.js)
         frame.setWebChannel(channel)
 

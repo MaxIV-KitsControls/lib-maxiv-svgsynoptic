@@ -255,7 +255,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # print("on_click", kind, name)
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
-            self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
+            # self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
         elif kind == "section":
             self.zoom_to(kind, name)
         else:

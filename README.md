@@ -92,7 +92,7 @@ The model list is injected into the html-file. In order for this to work the htm
 
 ```<script type="text/javascript">/*configplaceholder*/</script>```
 
-Finally, to import the list of models call the set_config() function of the widget giving the name of the json file. See also the "tango" example.
+Finally, to import the list of models call the setConfig() function of the widget giving the name of the json file. See also the "tango" example.
 
 
 
