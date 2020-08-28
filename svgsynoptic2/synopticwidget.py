@@ -118,7 +118,7 @@ class SynopticWidget(QtWidgets.QWidget):
         # some ugly magic to get the path to the SVG file right. It
         # needs to be absolute because local paths go to the base URL.
         abspath = os.path.dirname(os.path.abspath(html))
-        # print(("absolute path " + abspath + '/' + html))
+        # print(f"absolute path {abspath}/{html}")
 
         with open(html) as f:
             text = f.read().replace("${path}", abspath)  # TODO: use template
