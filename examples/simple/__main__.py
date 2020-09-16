@@ -15,10 +15,12 @@ from svgsynoptic2.synopticwidget import SynopticWidget
 class ExampleSynopticWidget(SynopticWidget):
 
     "A custom subclass of the synoptic widget."
-
-    def on_click(self, kind, name):
-        # Overriding the click event handler to print information
-        print "click", kind, name
+    def __init__(self, url=None, parent=None, *args, **kwargs):
+        super(ExampleSynopticWidget, self).__init__(url=None, parent=None, *args, **kwargs)
+        
+    #def on_click(self, kind, name):
+    #    # Overriding the click event handler to print information
+    #    print("click", kind, name)
 
 
 def main():

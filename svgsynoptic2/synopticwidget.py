@@ -8,10 +8,11 @@ import logging
 import os
 import json
 
-from PyQt4 import Qt, QtCore, QtGui
-from PyQt4.QtWebKit import QWebPage, QWebView, QWebSettings, QWebInspector
+from PyQt5 import Qt, QtCore, QtGui, QtWidgets
+from PyQt5.QtWebKitWidgets import  QWebView, QWebPage, QWebInspector
+from PyQt5.QtWebKit  import QWebSettings
 
-from jsinterface import JSInterface
+from .jsinterface import JSInterface
 
 
 class LoggingWebPage(QWebPage):
@@ -27,10 +28,10 @@ class LoggingWebPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, lineNumber, sourceID):
         # don't use the logger for now; too verbose :)
-        print "JsConsole(%s:%d):\n\t%s" % (sourceID, lineNumber, msg)
+        print("JsConsole(%s:%d):\n\t%s" % (sourceID, lineNumber, msg))
 
 
-class SynopticWidget(QtGui.QWidget):
+class SynopticWidget(QtWidgets.QWidget):
 
     """
     A Qt widget displaying a SVG synoptic in a webview.
@@ -50,7 +51,7 @@ class SynopticWidget(QtGui.QWidget):
         self._modelNames = None
 
     def _setup_ui(self, url=None, section=None):
-        self.hbox = hbox = QtGui.QHBoxLayout(self)
+        self.hbox = hbox = QtWidgets.QHBoxLayout(self)
         self.hbox.setContentsMargins(0, 0, 0, 0)
         self.hbox.layout().setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.hbox)
@@ -60,13 +61,13 @@ class SynopticWidget(QtGui.QWidget):
     def set_url(self, url, section=None):
         # TODO: probably breaks things if the url is already set
         self._url = url
-        self.splitter = QtGui.QSplitter(self)
+        self.splitter = QtWidgets.QSplitter(self)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.hbox.addWidget(self.splitter)
         view = self._create_view(url, section)
         self._setup_inspector(view)
         self.splitter.addWidget(view)
-        print "set_url", url
+        print("set_url", url)
 
     def setConfig(self, configFile):
         abspath = os.path.dirname(os.path.abspath(configFile))
@@ -110,7 +111,8 @@ class SynopticWidget(QtGui.QWidget):
         # Inject JSInterface into the JS global namespace as "Backend"
         def addBackend():
             frame.addToJavaScriptWindowObject('QtBackend', self.js)
-        view.connect(frame, QtCore.SIGNAL("javaScriptWindowObjectCleared()"), addBackend)
+        #view.connect(frame, QtCore.SIGNAL("javaScriptWindowObjectCleared()"), addBackend)
+        frame.javaScriptWindowObjectCleared.connect(addBackend)
 
         # load the page
         # need to set the "base URL" for the webview to find the
@@ -152,7 +154,7 @@ class SynopticWidget(QtGui.QWidget):
                 self._inspector.setPage(page)
                 self.splitter.addWidget(self._inspector)
 
-        shortcut = QtGui.QShortcut(self)
+        shortcut = QtWidgets.QShortcut(self)
         shortcut.setKey(QtCore.Qt.Key_F12)
         shortcut.activated.connect(toggle_inspector)
 
@@ -218,7 +220,7 @@ class SynopticWidget(QtGui.QWidget):
         """Set a list of items as 'selected'. By default unselects all
         previously selected things first.
         """
-        print "select", kind, names
+        print("select", kind, names)
         if replace:
             self.js.evaluate("synoptic.unselectAll()")
         if names:
@@ -234,7 +236,7 @@ class SynopticWidget(QtGui.QWidget):
 
 if __name__ == '__main__':
     import sys
-    print sys.argv[1]
+    print(sys.argv[1])
     qapp = Qt.QApplication([])
     sw = SynopticWidget(sys.argv[1])
     sw.show()

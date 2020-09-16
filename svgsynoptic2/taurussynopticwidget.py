@@ -6,9 +6,9 @@ from inspect import isclass
 import json
 
 import numpy as np
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 import PyTango
-from synopticwidget import SynopticWidget
+from .synopticwidget import SynopticWidget
 from taurus import Attribute, Manager, Release
 from taurus.core.taurusbasetypes import (
     AttrQuality, TaurusEventType, TaurusSerializationMode)
@@ -47,7 +47,7 @@ class TooltipUpdater(QtCore.QThread):
                                   % value.value)
             self.finished.emit(self.model, html)
         except PyTango.DevFailed as e:
-            print e
+            print(e)
 
 
 def getStateClasses(state=None):
@@ -110,13 +110,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             plugins = __import__("plugins.%s" % plugin, globals(),
                                  locals(), [cmd], -1)
         except ImportError as e:
-            print "Could not initialize plugin '%s'!" % plugin
-            print e
+            print("Could not initialize plugin '%s'!" % plugin)
+            print(e)
             return ""
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print "handle_subscriptions ", models
+        print("handle_subscriptions ", models)
         if self.registry:
             self.registry.subscribe(models)
 
@@ -246,7 +246,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         clicked section.  Override this function if you need something
         else.
         """
-        print "on_click", kind, name
+        print("on_click", kind, name)
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
             self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
@@ -269,7 +269,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             if name.lower() in self._panels:
 
                 widget = self._panels[name.lower()]
-                print "Found existing panel for %s:" % name, widget
+                print("Found existing panel for %s:" % name, widget)
                 if not widget.isVisible():
                     widget.show()
                 widget.activateWindow()
@@ -305,10 +305,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         become pretty bogged down."""
         if self.registry:
             with self.registry.lock:
-                print "cleaning up panel for", w.getModel(), "..."
+                print("cleaning up panel for", w.getModel(), "...")
                 self._panels.pop(str(w.getModel()).lower(), None)
                 w.setModel(None)
-                print "done!"
+                print("done!")
 
     # Note: the tooltip stuff is broken and not currently in use.
     # Currently there is only the default tooltip which displays the
@@ -365,13 +365,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # not exit cleanly.
         super(TaurusSynopticWidget, self).closeEvent(event)
         for model, panel in self._panels.items():
-            print "closing panel for", model
+            print("closing panel for", model)
             panel.close()
 
 
 if __name__ == '__main__':
     import sys
-    print sys.argv[1]
+    print(sys.argv[1])
     # qapp = Qt.QApplication([])
     app = TaurusApplication()
     sw = TaurusSynopticWidget()

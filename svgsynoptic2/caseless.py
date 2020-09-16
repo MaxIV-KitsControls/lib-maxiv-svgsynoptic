@@ -44,8 +44,8 @@ class CaselessDictionary(MutableMapping):
     def __init__(self, *args, **kwargs):
         self.__dict__["_dict"] = {}
         temp_dict = dict(*args, **kwargs)
-        for key, value in temp_dict.iteritems():
-            if isinstance(key, basestring):
+        for key, value in temp_dict.items():
+            if isinstance(key, str):
                 key = CaselessString.make_caseless(key)
             self._dict[key] = value
 
@@ -90,7 +90,7 @@ class CaselessString(object):
 
     @classmethod
     def make_caseless(cls, string):
-        if isinstance(string, unicode):
+        if isinstance(string, str):
             return CaselessUnicode(string)
         return CaselessStr(string)
 
@@ -99,5 +99,5 @@ class CaselessStr(CaselessString, str):
     pass
 
 
-class CaselessUnicode(CaselessString, unicode):
+class CaselessUnicode(CaselessString, str):
     pass

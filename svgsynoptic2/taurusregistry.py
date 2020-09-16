@@ -1,7 +1,7 @@
 from threading import Lock, Event
 from time import sleep
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from taurus import Attribute
 from taurus.core import TaurusException
 try:
@@ -18,9 +18,9 @@ import PyTango
 
 # We can't use pytango's CaselessDict since it does not keep the original
 # case of the keys :(
-from caseless import CaselessDictionary as CaselessDict
+from .caseless import CaselessDictionary as CaselessDict
 
-from ttldict import TTLDict
+from .ttldict import TTLDict
 
 
 class Registry(QtCore.QThread):
@@ -77,7 +77,7 @@ class Registry(QtCore.QThread):
                     try:
                         taurusattrs[modelstate] = Attribute(modelstate)
                     except TaurusException as e:
-                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                        print("Failed to create Taurus Attribute for model %s! %s" % (model, e))
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
@@ -85,11 +85,11 @@ class Registry(QtCore.QThread):
                     try:
                         taurusattrs[model] = Attribute(model)
                     except TaurusException as e:
-                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                        print("Failed to create Taurus Attribute for model %s! %s" % (model, e))
                     except Exception as e:
-                        print "Failed to create Taurus Attribute for model %s!" % (model)
+                        print("Failed to create Taurus Attribute for model %s!" % (model))
             else:
-                print "Invalid Taurus model %s!?" % model
+                print("Invalid Taurus model %s!?" % model)
         self._attributes = attrs
         self._taurus_attributes = taurusattrs
 
@@ -129,7 +129,7 @@ class Registry(QtCore.QThread):
             try:
                 self._add_listener(attr)
             except (TypeError, PyTango.DevFailed) as e:
-                print "Failed to setup listener for", attr, e
+                print("Failed to setup listener for", attr, e)
 
         self.unsubscribe_callback(old_attrs)
 
@@ -147,9 +147,9 @@ class Registry(QtCore.QThread):
             listener.addListener(self.handle_event)
             return listener
         except (TaurusException, AttributeError) as e:
-            print "Failed to subscribe to model %s! %s" % (model, e)
+            print("Failed to subscribe to model %s! %s" % (model, e))
         except Exception:
-            print "Failed to subscribe to model %s!" % (model)
+            print("Failed to subscribe to model %s!" % (model))
 
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)
