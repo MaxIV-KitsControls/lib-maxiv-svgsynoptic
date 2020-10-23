@@ -73,13 +73,13 @@ class TTLDict(MutableMapping):
 
     def __len__(self):
         with self._lock:
-            for key in list(self._values.keys()):
+            for key in self._values.keys():
                 self.is_expired(key, remove=True)
             return len(self._values)
 
     def __iter__(self):
         with self._lock:
-            for key in list(self._values.keys()):
+            for key in self._values.keys():
                 if not self.is_expired(key, remove=True):
                     yield key
 

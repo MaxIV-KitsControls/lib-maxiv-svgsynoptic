@@ -74,7 +74,7 @@ class SynopticWidget(QtWidgets.QWidget):
         text = "var modelNames ={"
         with open(config_file, 'r') as read_file:
             data = json.load(read_file)
-            for key in list(data.keys()):
+            for key in data.keys():
                 text += key + " : \"" + data[key] + "\","
         text += "};"
         # print(text)

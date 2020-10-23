@@ -72,7 +72,7 @@ class CaselessDictionary(MutableMapping):
         return [str(k) for k in self._dict]
 
     def items(self):
-        return list(zip(list(self.keys()), list(self.values())))
+        return zip(self.keys(), self.values())
 
 
 class CaselessString(object):

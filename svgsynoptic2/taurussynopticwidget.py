@@ -57,11 +57,11 @@ def getStateClasses(state=None):
 
 # precalculate since this is done quite a lot
 STATE_CLASSES = dict((state, json.dumps(getStateClasses(state)))
-                     for name, state in list(tango.DevState.names.items()))
+                     for name, state in tango.DevState.names.items())
 STATE_CLASSES[None] = json.dumps(getStateClasses())
 
 # lookup table to get state name as a string
-STATE_MAP = {code: name for name, code in list(tango.DevState.names.items())}
+STATE_MAP = {code: name for name, code in tango.DevState.names.items()}
 
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
@@ -374,7 +374,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # Get rid of all opened panels, otherwise the application will
         # not exit cleanly.
         super(TaurusSynopticWidget, self).closeEvent(event)
-        for model, panel in list(self._panels.items()):
+        for model, panel in self._panels.items():
             print("closing panel for", model)
             panel.close()
 

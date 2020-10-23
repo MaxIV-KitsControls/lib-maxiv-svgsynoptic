@@ -69,7 +69,7 @@ class Registry(QtCore.QThread):
                 # for convenience, we subscribe to State for any devices
                 modelstate = model + "/State"
                 attrs[modelstate] = True
-                if modelstate not in list(taurusattrs.keys()):
+                if modelstate not in taurusattrs.keys():
                     try:
                         taurusattrs[modelstate] = Attribute(modelstate)
                     except TaurusException as e:
@@ -77,7 +77,7 @@ class Registry(QtCore.QThread):
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
-                if model not in list(taurusattrs.keys()):
+                if model not in taurusattrs.keys():
                     try:
                         taurusattrs[model] = Attribute(model)
                     except TaurusException as e:
@@ -108,7 +108,7 @@ class Registry(QtCore.QThread):
         Update the subscriptions; add new ones, remove old ones
         """
 
-        listeners = set(k.lower() for k in list(self.listeners.keys()))
+        listeners = set(k.lower() for k in self.listeners.keys())
         new_attrs = set(attributes) - set(listeners)
         old_attrs = set(listeners) - set(attributes)
 
@@ -162,7 +162,7 @@ class Registry(QtCore.QThread):
         """
         if model in self.listeners:
             return self.listeners[model]
-        for attr in list(self.listeners.values()):
+        for attr in self.listeners.values():
             if attr.getNormalName().lower() == model.lower():
                 return attr
 
