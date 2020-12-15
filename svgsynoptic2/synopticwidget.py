@@ -66,7 +66,6 @@ class SynopticWidget(QtWidgets.QWidget):
         self.hbox.addWidget(self.splitter)
         view = self._create_view(url, section)
         self.splitter.addWidget(view)
-        # print("set_url", url)
 
     def setConfig(self, config_file):
         abspath = os.path.dirname(os.path.abspath(config_file))
@@ -77,7 +76,6 @@ class SynopticWidget(QtWidgets.QWidget):
             for key in data.keys():
                 text += key + " : \"" + data[key] + "\","
         text += "};"
-        # print(text)
         self._modelNames = text
 
     def _create_view(self, html=None, section=None):
@@ -118,13 +116,11 @@ class SynopticWidget(QtWidgets.QWidget):
         # some ugly magic to get the path to the SVG file right. It
         # needs to be absolute because local paths go to the base URL.
         abspath = os.path.dirname(os.path.abspath(html))
-        # print(f"absolute path {abspath}/{html}")
 
         with open(html) as f:
             text = f.read().replace("${path}", abspath)  # TODO: use template
             if self._modelNames is not None:
                 if "/*configplaceholder*/" in text:
-                    # print("placeholder found")
                     texta, textb = text.split("/*configplaceholder*/", 1)
                     text = texta + self._modelNames + textb
             view.setHtml(text, base_url)
@@ -202,7 +198,6 @@ class SynopticWidget(QtWidgets.QWidget):
         Set a list of items as 'selected'. By default unselects all
         previously selected things first.
         """
-        # print("select", kind, names)
         if replace:
             self.js.evaluate("synoptic.unselectAll()")
         if names:
@@ -218,7 +213,6 @@ class SynopticWidget(QtWidgets.QWidget):
 
 if __name__ == '__main__':
     import sys
-    print(sys.argv[1])
     qapp = Qt.QApplication([])
     sw = SynopticWidget(sys.argv[1])
     sw.show()

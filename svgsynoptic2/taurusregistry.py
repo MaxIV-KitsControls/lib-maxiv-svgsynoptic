@@ -146,7 +146,7 @@ class Registry(QtCore.QThread):
         except (TaurusException, AttributeError) as e:
             print("Failed to subscribe to model %s! %s" % (model, e))
         except Exception:
-            print("Failed to subscribe to model %s!" % (model))
+            print("Failed to subscribe to model %s!" % model)
 
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)

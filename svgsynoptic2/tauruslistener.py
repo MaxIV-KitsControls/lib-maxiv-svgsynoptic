@@ -25,7 +25,6 @@ class TaurusAttribute(object):
     """
 
     def __init__(self, name, callback):
-        print(self.__class__.__name__, name)
         self.name = name
         self.callback = callback
         self._last_time = 0
@@ -85,7 +84,6 @@ class TaurusAttribute(object):
 
     def clear(self):
         try:
-            print("clear", self.attribute)
             self.attribute.removeListener(self)
             del self.attribute
 

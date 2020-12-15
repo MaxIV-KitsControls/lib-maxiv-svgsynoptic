@@ -42,7 +42,7 @@ class TooltipUpdater(QtCore.QThread):
                                   % value.value)
             self.finished.emit(self.model, html)
         except tango.DevFailed as e:
-            print(e)
+            print("Exception: ", e)
 
 
 def getStateClasses(state=None):
@@ -75,7 +75,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
     def __init__(self, parent=None, **kwargs):
         super(TaurusSynopticWidget, self).__init__(parent=parent)
-        # print('init TaurusSynopticWidget')
         Manager().setSerializationMode(TaurusSerializationMode.Serial)
         self.tooltip_trigger.connect(self._update_device_tooltip)
         self._panels = {}
@@ -112,12 +111,11 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                  locals(), [cmd], -1)
         except ImportError as e:
             print("Could not initialize plugin '%s'!" % plugin)
-            print(e)
+            print("Exception: ", e)
             return ""
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print("handle_subscriptions ", models)
         if self.registry:
             self.registry.subscribe(models)
 
@@ -252,7 +250,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         clicked section.  Override this function if you need something
         else.
         """
-        # print("on_click", kind, name)
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
             # self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
@@ -381,7 +378,6 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
 if __name__ == '__main__':
     import sys
-    print(sys.argv[1])
     # qapp = Qt.QApplication([])
     app = TaurusApplication()
     sw = TaurusSynopticWidget()
