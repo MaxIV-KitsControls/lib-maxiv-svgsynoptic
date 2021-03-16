@@ -14,6 +14,7 @@ setup(
     include_package_data=True,
     install_requires=["fandango", 
                       "taurus",
-                      "pytango"]
+                      "pytango",
+                      "pyqtwebkit"]
     package_data={'svgsynoptic2': ['web/js/*.js', 'web/js/libs/*.js', 'web/css/*.css']}
 )
