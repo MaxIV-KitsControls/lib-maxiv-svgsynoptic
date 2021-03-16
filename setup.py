@@ -12,5 +12,8 @@ setup(
     url="http://www.maxlab.lu.se",
     packages=['svgsynoptic2'],
     include_package_data=True,
+    install_requires=["fandango", 
+                      "taurus",
+                      "pytango"],
     package_data={'svgsynoptic2': ['web/js/*.js', 'web/js/libs/*.js', 'web/css/*.css']}
 )
