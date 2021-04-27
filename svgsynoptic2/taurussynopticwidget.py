@@ -2,30 +2,25 @@
 A Taurus based TANGO backend for the SVG synoptic.
 """
 
-from inspect import isclass
 import json
+from inspect import isclass
 
 import numpy as np
-from PyQt4 import QtCore
-import PyTango
-from synopticwidget import SynopticWidget
+import tango
+from PyQt5 import QtCore
 from taurus import Attribute, Manager, Release
+from taurus.core.tango.enums import DevState
 from taurus.core.taurusbasetypes import (
-    AttrQuality, TaurusEventType, TaurusSerializationMode)
+    TaurusEventType, TaurusSerializationMode)
 from taurus.external.qt import Qt
-TAURUS_VERSION = Release.version_info[0]
-try:
-    from taurus.qt.qtgui.container import TaurusWidget
-except ImportError:
-    from taurus.qt.qtgui.panel import TaurusWidget
-from taurus.qt.qtgui.panel import TaurusDevicePanel
 from taurus.qt.qtgui.application import TaurusApplication
-try:
-    from taurus.core.tango.enums import DevState
-except ImportError:
-    from PyTango import DevState, AttrQuality
+from taurus.qt.qtgui.container import TaurusWidget
+from taurus.qt.qtgui.panel import TaurusDevicePanel
 
+from .synopticwidget import SynopticWidget
 from .taurusregistry import Registry
+
+TAURUS_VERSION = Release.version_info[0]
 
 
 class TooltipUpdater(QtCore.QThread):
@@ -46,37 +41,40 @@ class TooltipUpdater(QtCore.QThread):
                                   '<span class="value">%s</span>'
                                   % value.value)
             self.finished.emit(self.model, html)
-        except PyTango.DevFailed as e:
-            print e
+        except tango.DevFailed as e:
+            print("Exception: ", e)
 
 
 def getStateClasses(state=None):
-    "Return a state CSS class configuration"
+    """
+    Return a state CSS class configuration
+    """
     states = dict((("state-%s" % name), s == state)
-                  for name, s in PyTango.DevState.names.items())
+                  for name, s in list(tango.DevState.names.items()))
     states["state"] = True
     return states
 
 
 # precalculate since this is done quite a lot
 STATE_CLASSES = dict((state, json.dumps(getStateClasses(state)))
-                     for name, state in PyTango.DevState.names.items())
+                     for name, state in tango.DevState.names.items())
 STATE_CLASSES[None] = json.dumps(getStateClasses())
 
 # lookup table to get state name as a string
-STATE_MAP = {code: name for name, code in PyTango.DevState.names.items()}
+STATE_MAP = {code: name for name, code in tango.DevState.names.items()}
 
 
 class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
 
-    """A SynopticWidget that connects to TANGO in order to
-    get updates for models (attributes)."""
+    """
+    A SynopticWidget that connects to TANGO in order to
+    get updates for models (attributes).
+    """
 
     tooltip_trigger = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None, **kwargs):
         super(TaurusSynopticWidget, self).__init__(parent=parent)
-        print('init TaurusSynopticWidget')
         Manager().setSerializationMode(TaurusSerializationMode.Serial)
         self.tooltip_trigger.connect(self._update_device_tooltip)
         self._panels = {}
@@ -99,7 +97,9 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return self._url
 
     def closeEvent(self, event):
-        "Clean things up when the widget is closed"
+        """
+        Clean things up when the widget is closed
+        """
         self.registry.clear()
         self.registry.stop()
         self.registry.wait()
@@ -110,20 +110,21 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             plugins = __import__("plugins.%s" % plugin, globals(),
                                  locals(), [cmd], -1)
         except ImportError as e:
-            print "Could not initialize plugin '%s'!" % plugin
-            print e
+            print("Could not initialize plugin '%s'!" % plugin)
+            print("Exception: ", e)
             return ""
         return getattr(plugins, cmd)(self, args)
 
     def handle_subscriptions(self, models=[]):
-        print "handle_subscriptions ", models
         if self.registry:
             self.registry.subscribe(models)
 
     def unsubscribe_listener(self, unsubscribed):
-        """Tell the synoptic about unsubscribed models. This is
+        """
+        Tell the synoptic about unsubscribed models. This is
         needed because it's all asunchronous so it cannot be assumed
-        that a model is really unsubscribed until it is."""
+        that a model is really unsubscribed until it is.
+        """
         classes = STATE_CLASSES[None]
         for model in unsubscribed:
             self.js.evaluate("synoptic.setClasses('model', %r, %s)" %
@@ -152,12 +153,14 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return value
 
     def attribute_listener(self, model, evt_src, evt_type, evt_value):
-        "Handle events"
+        """
+        Handle events
+        """
         if evt_type == TaurusEventType.Error:
             return  # handle errors somehow
         if evt_type == TaurusEventType.Config:
             return  # need to do something here too
-        value = evt_value.value
+        value = evt_value.rvalue
         # check for the presence of a "fragment" ending (e.g. ...#[3])
         if self.registry and self.registry.eval_validator.isValid(model):
             try:
@@ -169,10 +172,10 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # TODO: clean this up!
 
         quality = evt_value.quality
-        quality_string = str(PyTango.AttrQuality.values[quality])
+        quality_string = str(tango.AttrQuality.values[quality])
 
-        if isinstance(value, (DevState, PyTango.DevState,
-                              PyTango._PyTango.DevState)):
+        if isinstance(value, (DevState, tango.DevState,
+                              tango._tango.DevState)):
             classes = STATE_CLASSES[value]
             device, attr = model.rsplit("/", 1)
             state = STATE_MAP[value]
@@ -215,7 +218,7 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                           "quality": quality_string})))
         else:
             # everything else needs to be displayed as text
-            if quality == PyTango.AttrQuality.ATTR_INVALID:
+            if quality == tango.AttrQuality.ATTR_INVALID:
                 text = "?"  # do something more sophisticated here
             else:
                 # TODO: need more sophisticated logic here; currently
@@ -223,13 +226,13 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 # we should even support those...
                 try:
                     if TAURUS_VERSION == 4:
-                        fmt = evt_src.getFormat()
-                        value = fmt%value    # taurus4 issue: values without format
-                    text = evt_src.displayValue(value)
+                        fmt = "%" + evt_src.format_spec
+                        value = fmt % value    # taurus4 issue: values without format
+                    text = value
                 except AttributeError:
                     text = str(value)
             try:
-                unit = evt_src.getConfig().unit
+                unit = evt_src.rvalue.units
             except AttributeError:
                 unit = None
 
@@ -242,21 +245,22 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                                                  "quality": quality_string})))
 
     def on_click(self, kind, name):
-        """The default behavior is to mark a clicked device and to zoom to a
+        """
+        The default behavior is to mark a clicked device and to zoom to a
         clicked section.  Override this function if you need something
         else.
         """
-        print "on_click", kind, name
         if kind == "model" and self.registry.device_validator.isValid(name):
             self.select(kind, [name])
-            self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
+            # self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), name)
         elif kind == "section":
             self.zoom_to(kind, name)
         else:
             self.unselect_all()
 
     def get_device_panel(self, device):
-        """Override to change which panel is opened for a given device
+        """
+        Override to change which panel is opened for a given device
         name. Return a widget class, a widget, or None if you're
         handling the panel yourself. TaurusDevicePanel is a reasonable
         fallback.
@@ -264,18 +268,19 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         return TaurusDevicePanel
 
     def on_rightclick(self, kind, name):
-        "The default behavior for right clicking a device is to open a panel."
+        """
+        The default behavior for right clicking a device is to open a panel.
+        """
         if kind == "model" and self.registry.device_validator.isValid(name):
             if name.lower() in self._panels:
 
                 widget = self._panels[name.lower()]
-                print "Found existing panel for %s:" % name, widget
+                print("Found existing panel for %s:" % name, widget)
                 if not widget.isVisible():
                     widget.show()
                 widget.activateWindow()
                 widget.raise_()
                 return
-
 
             # check if we recognise the class of the device
             widget = self.get_device_panel(name)
@@ -300,15 +305,17 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
             widget.show()
 
     def _cleanup_panel(self, w):
-        """In the long run it seems like a good idea to try and clean up
+        """
+        In the long run it seems like a good idea to try and clean up
         closed panels. In particular, the Taurus polling thread can
-        become pretty bogged down."""
+        become pretty bogged down.
+        """
         if self.registry:
             with self.registry.lock:
-                print "cleaning up panel for", w.getModel(), "..."
+                print("cleaning up panel for", w.getModel(), "...")
                 self._panels.pop(str(w.getModel()).lower(), None)
                 w.setModel(None)
-                print "done!"
+                print("done!")
 
     # Note: the tooltip stuff is broken and not currently in use.
     # Currently there is only the default tooltip which displays the
@@ -342,8 +349,8 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
                 # hack to keep newlines
                 value = value.replace("\n", "<br>")
             self._tooltip_data.setdefault(device, {})[attr] = value
-            #dev = evt_src.getParentObj()
-            #info = dev.getHWObj().info()
+            # dev = evt_src.getParentObj()
+            # info = dev.getHWObj().info()
             # self._tooltip_data[device]["Class"] = info.dev_class
             self.tooltip_trigger.emit(device)
         else:
@@ -365,13 +372,12 @@ class TaurusSynopticWidget(SynopticWidget, TaurusWidget):
         # not exit cleanly.
         super(TaurusSynopticWidget, self).closeEvent(event)
         for model, panel in self._panels.items():
-            print "closing panel for", model
+            print("closing panel for", model)
             panel.close()
 
 
 if __name__ == '__main__':
     import sys
-    print sys.argv[1]
     # qapp = Qt.QApplication([])
     app = TaurusApplication()
     sw = TaurusSynopticWidget()

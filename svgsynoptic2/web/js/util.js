@@ -41,7 +41,7 @@ var util = {};
     util.transformedBoundingBox = function (el){
         var bb  = el.getBBox(),
             svg = el.ownerSVGElement,
-            m   = el.getTransformToElement(el.parentNode);
+            m   = el.getScreenCTM().inverse().multiply(el.parentNode.getScreenCTM());
 
         // Create an array of all four points for the original bounding box
         var pts = [

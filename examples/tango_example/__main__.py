@@ -13,7 +13,9 @@ from svgsynoptic2.taurussynopticwidget import TaurusSynopticWidget
 
 class ExampleSynopticWidget(TaurusSynopticWidget):
 
-    "A custom subclass of the synoptic widget."
+    """
+    A custom subclass of the synoptic widget.
+    """
 
     def get_device_panel(self, device):
         return TaurusDevicePanel
@@ -27,7 +29,6 @@ def main():
     # svgsynoptic library's path, not from the module's path.
     path = os.path.dirname(__file__)
     widget = ExampleSynopticWidget()
-    print(os.path.join(path, "example.html"))
     widget.setConfig(os.path.join(path, "models.json"))
     widget.setModel(os.path.join(path, "example.html"))
     widget.resize(1000, 700)

@@ -10,12 +10,8 @@
   <!-- This CSS file is always needed -->
   <link rel="stylesheet" href="css/main.css" />
 
-  <!-- This one is specific to TANGO, providing state colors -->
-  <link rel="stylesheet" href="css/tango.css" />
-
-  <!-- Plugin specific CSS, only need those that are loaded -->
+  <!-- plugin CSS -->    
   <link rel="stylesheet" href="css/tooltip.css" />
-  <link rel="stylesheet" href="css/layers.css" />  
   
   <!-- To use a local CSS file, prefix it like below to get the correct path. -->
   <link rel="stylesheet" href="${path}/example1.css" />
@@ -26,29 +22,26 @@
   
   <div id="view">                            
     <!-- this is where our synoptic will go -->
-      <!-- <div class="logo">Simple Example</div> -->
+    <div class="overlay">Simple Example</div>
   </div>
-
-
-  <script type="text/javascript">/*configplaceholder*/</script>
-  <!-- <script src="../../examples/tango/modelslist.js"></script>-->
 
   <!-- load some JavaScript libraries we use -->
   <script src="js/libs/d3.js" charset="utf-8"></script>
   <script src="js/libs/ramda.min.js"></script>
   <script src="js/libs/lodash.min.js"></script>
+  <script src="js/libs/qwebchannel.js"></script>
 
   <!-- load synoptic specific JS -->
   <script src="js/util.js"></script>
+
+  <!-- optional plugins (make sure to also include the corresponding CSS above!) -->
+  <script src="js/tooltip.js"></script>
+
+  <!-- necessary stuff -->
   <script src="js/qt_backend.js"></script>
   <script src="js/view.js"></script>
   <script src="js/synoptic.js"></script>
   <script src="js/main.js"></script>
-
-  <!-- optional plugins -->
-  <script src="js/layers.js"></script>  
-  <script src="js/tooltip.js"></script>
-
 
   <!-- kick everything off when the page has loaded -->
   <script type="text/javascript">
@@ -58,15 +51,12 @@
         var container = document.getElementById("view");
 
         // disabling zoom by only allowing one step
-        var config = {
-            windowSize: {width: 400, height: 600},
-            view: {zoomSteps: [1]}
-        };
+        var config = {view: {zoomSteps: [1]}};
         
         // loadSVG is a convenience method for loading a file.  Note
         // that we need to give the absolute path to the file. ${path}
         // will be replaced with the path to this HTML file.
-        loadSVG("${path}/example.svg", container, config);
+        loadSVG("${path}/example1.svg", container, config);
                 
     });
 

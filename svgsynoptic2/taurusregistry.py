@@ -1,26 +1,18 @@
-from threading import Lock, Event
+from threading import Event, Lock
 from time import sleep
 
-from PyQt4 import QtCore
+import tango
+from PyQt5 import QtCore
 from taurus import Attribute
 from taurus.core import TaurusException
-try:
-    from taurus.core.tango.tangovalidator import (TangoAttributeNameValidator,
-                                                  TangoDeviceNameValidator)
-    from taurus.core.evaluation.evalvalidator import (
-        EvaluationAttributeNameValidator)
-except ImportError:
-    from taurus.core.taurusvalidator import (
-        AttributeNameValidator as TangoAttributeNameValidator,
-        DeviceNameValidator as TangoDeviceNameValidator)
-    from taurus.core.evaluation import EvaluationAttributeNameValidator
-import PyTango
+from taurus.core.evaluation.evalvalidator import EvaluationAttributeNameValidator
+from taurus.core.tango.tangovalidator import (TangoAttributeNameValidator,
+                                              TangoDeviceNameValidator)
 
 # We can't use pytango's CaselessDict since it does not keep the original
 # case of the keys :(
-from caseless import CaselessDictionary as CaselessDict
-
-from ttldict import TTLDict
+from .caseless import CaselessDictionary as CaselessDict
+from .ttldict import TTLDict
 
 
 class Registry(QtCore.QThread):
@@ -53,7 +45,9 @@ class Registry(QtCore.QThread):
         self.stopped = Event()
 
     def run(self):
-        "A simple loop checking for changes to the attribute list"
+        """
+        A simple loop checking for changes to the attribute list
+        """
         # "batching" the updates should be more efficient than
         # reacting immediately, especially when listeners can come and
         # go quite frequently.
@@ -65,7 +59,9 @@ class Registry(QtCore.QThread):
                     self._update(attributes)
 
     def subscribe(self, models=[]):
-        """Set the currently subscribed list of models."""
+        """
+        Set the currently subscribed list of models.
+        """
         attrs = CaselessDict()
         taurusattrs = self._taurus_attributes
         for model in models:
@@ -77,7 +73,7 @@ class Registry(QtCore.QThread):
                     try:
                         taurusattrs[modelstate] = Attribute(modelstate)
                     except TaurusException as e:
-                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                        print("Failed to create Taurus Attribute for model %s! %s" % (model, e))
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
@@ -85,11 +81,11 @@ class Registry(QtCore.QThread):
                     try:
                         taurusattrs[model] = Attribute(model)
                     except TaurusException as e:
-                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                        print("Failed to create Taurus Attribute for model %s! %s" % (model, e))
                     except Exception as e:
-                        print "Failed to create Taurus Attribute for model %s!" % (model)
+                        print("Failed to create Taurus Attribute for model %s!" % (model))
             else:
-                print "Invalid Taurus model %s!?" % model
+                print("Invalid Taurus model %s!?" % model)
         self._attributes = attrs
         self._taurus_attributes = taurusattrs
 
@@ -108,8 +104,9 @@ class Registry(QtCore.QThread):
             self.event_callback(model, evt_src, *args)
 
     def _update(self, attributes=CaselessDict()):
-
-        "Update the subscriptions; add new ones, remove old ones"
+        """
+        Update the subscriptions; add new ones, remove old ones
+        """
 
         listeners = set(k.lower() for k in self.listeners.keys())
         new_attrs = set(attributes) - set(listeners)
@@ -128,8 +125,8 @@ class Registry(QtCore.QThread):
                 return
             try:
                 self._add_listener(attr)
-            except (TypeError, PyTango.DevFailed) as e:
-                print "Failed to setup listener for", attr, e
+            except (TypeError, tango.DevFailed) as e:
+                print("Failed to setup listener for", attr, e)
 
         self.unsubscribe_callback(old_attrs)
 
@@ -147,9 +144,9 @@ class Registry(QtCore.QThread):
             listener.addListener(self.handle_event)
             return listener
         except (TaurusException, AttributeError) as e:
-            print "Failed to subscribe to model %s! %s" % (model, e)
+            print("Failed to subscribe to model %s! %s" % (model, e))
         except Exception:
-            print "Failed to subscribe to model %s!" % (model)
+            print("Failed to subscribe to model %s!" % model)
 
     def _remove_listener(self, model):
         listener = self.listeners.pop(model)
@@ -160,7 +157,9 @@ class Registry(QtCore.QThread):
         listener.removeListener(self.handle_event)
 
     def get_listener(self, model):
-        "return the listener for a given model"
+        """
+        return the listener for a given model
+        """
         if model in self.listeners:
             return self.listeners[model]
         for attr in self.listeners.values():

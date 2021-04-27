@@ -1,6 +1,6 @@
 from threading import Lock
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 
 class JSInterface(QtCore.QObject):
@@ -32,7 +32,7 @@ class JSInterface(QtCore.QObject):
 
     def _evaluate_js(self, js):
         with self.lock:
-            self.frame.evaluateJavaScript(js)
+            self.frame.runJavaScript(js)
 
     @QtCore.pyqtSlot(str, str)
     def left_click(self, section, models):
@@ -52,7 +52,9 @@ class JSInterface(QtCore.QObject):
 
     @QtCore.pyqtSlot(str)
     def subscribe(self, devices):
-        "Update the list of attributes to pay attention to"
+        """
+        Update the list of attributes to pay attention to
+        """
         self.subscription.emit(devices)
 
     @QtCore.pyqtSlot(str)
@@ -65,7 +67,6 @@ class JSInterface(QtCore.QObject):
 
     @QtCore.pyqtSlot(str, str, str)
     def run_plugin_command(self, plugin, cmd, args):
-        print "run_plugin_command", plugin, cmd, args
         # Note: since we're using signals to loosely connect with the widget
         # it's not possible to get a return value. But we probably don't
         # want that anyway since it might block..?

@@ -47,7 +47,7 @@ To make a simple synoptic application, all you need to do is copy the structure 
 
 ### The SVG file ###
 
-This is really the most important part of any synoptic application. It can in principle contain anything that is supported by SVG (caveat: the application currently uses the Qt4 webview widget to display the SVG, which is based on a slightly older version of webkit. Not all the newest SVG features may be supported.) 
+This is really the most important part of any synoptic application. It can in principle contain anything that is supported by SVG (caveat: the application uses the PyQt5's QWebEngineView widget to display the SVG. Not all the newest SVG features may be supported.) 
 
 #### Structure ####
 
@@ -98,7 +98,7 @@ Finally, to import the list of models call the setConfig() function of the widge
 
 #### Tips & tricks ####
 
-The SVG format has lots of features that can be useful for a synoptic. There are no particular restrictions to what features can be used, except for what's actually supported by the browser component used. Since it's an evolving standard, some newer features may not be supported by the Qt webkit widget so it's important to test that before relying on it.
+The SVG format has lots of features that can be useful for a synoptic. There are no particular restrictions to what features can be used, except for what's actually supported by the browser component used. Since it's an evolving standard, some newer features may not be supported by the PyQt5's widgets so it's important to test that before relying on it.
 
 Inkscape is a very powerful tool and it's worth putting a little time into learning to use it effectively. It has many helpful features that may not be immediately obvious. 
 
