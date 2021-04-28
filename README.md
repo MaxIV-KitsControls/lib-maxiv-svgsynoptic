@@ -1,3 +1,7 @@
+# Moved to gitlab.com
+
+We moved to a new place, see https://gitlab.com/MaxIV/lib-maxiv-svgsynoptic
+
 # SVG synoptic #
 
 
