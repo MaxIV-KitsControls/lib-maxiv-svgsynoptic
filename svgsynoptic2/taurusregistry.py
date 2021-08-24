@@ -78,6 +78,8 @@ class Registry(QtCore.QThread):
                         taurusattrs[modelstate] = Attribute(modelstate)
                     except TaurusException as e:
                         print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
+                    except PyTango.DevFailed as e:
+                        print "Failed to create Taurus Attribute for model %s! %s" % (model, e)
             elif (self.attribute_validator.isValid(model) or
                     self.eval_validator.isValid(model)):
                 attrs[model] = True
